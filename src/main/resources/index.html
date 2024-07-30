@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<script>
+
+    if (typeof window.Telegram === 'undefined' ||
+        typeof window.Telegram.WebApp === 'undefined' ||
+        typeof window.Telegram.WebApp.initDataUnsafe === 'undefined' ||
+        typeof window.Telegram.WebApp.initDataUnsafe.user === 'undefined' ||
+        typeof window.Telegram.WebApp.initDataUnsafe.user.id === 'undefined') {
+        // Перенаправление на указанную страницу Telegram
+        window.location.href = 'https://t.me/fenomen_mitrohina_bot?start=jYlb7wo5xzKD23m2xGNaN';
+    }
+
+    var price = 2999.00;
+    var pkId = "pk_885fd2d2190460531c2c9a1fc4676";
+    var payments = new cp.CloudPayments({
+        language: "ru-RU",
+        email: "",
+        applePaySupport: false,
+        googlePaySupport: false,
+        yandexPaySupport: false,
+        tinkoffPaySupport: false,
+        tinkoffInstallmentSupport: false,
+        sbpSupport: true,
+    });
+
+    var receipt = {
+        "Items": [
+            {
+                "label": "Доступ в сообщество на месяц. Юлия Митрохина",
+                "price": price,
+                "quantity": 1.00,
+                "amount": price,
+                "method": 4,
+                "object": 4,
+                "measurementUnit": "шт",
+            }
+        ],
+        "calculationPlace": "mitrohinayulya.ru",
+        "taxationSystem": 1,
+        "amounts": {
+            "electronic": price,
+            "advancePayment": 0.00,
+            "credit": 0.00,
+            "provision": 0.00
+        }
+    };
+
+    var data = {
+        CloudPayments: {
+            CustomerReceipt: receipt
+        }
+    };
+
+    payments.pay("charge", {
+        publicId: pkId,
+        description: "Оплата подписки",
+        amount: price,
+        currency: "RUB",
+        accountId: window.Telegram.WebApp.initDataUnsafe.user.id,
+        invoiceId: "INV" + window.Telegram.WebApp.initDataUnsafe.user.id,
+        skin: "mini",
+        requireEmail: true,
+        data: data
+    }).then(function(widgetResult) {
+        console.log('result', widgetResult);
+    }).catch(function(error) {
+        console.log('error', error);
+    });
+
+    window.addEventListener('load', function() {
+        payments.pay("charge", {
+            publicId: pkId,
+            description: "Оплата подписки",
+            amount: price,
+            currency: "RUB",
+            accountId: window.Telegram.WebApp.initDataUnsafe.user.id,
+            invoiceId: "INV" + window.Telegram.WebApp.initDataUnsafe.user.id,
+            skin: "mini",
+            requireEmail: true,
+            data: data
+        }).then(function(widgetResult) {
+            console.log('result', widgetResult);
+        }).catch(function(error) {
+            console.log('error', error);
+        });
+    });
+</script>
+</body>
+</html>
