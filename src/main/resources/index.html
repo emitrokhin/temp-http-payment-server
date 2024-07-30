@@ -7,8 +7,20 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .hide-scroll {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
 </head>
-<body>
+<body class="hide-scroll">
 <script>
     window.Telegram.WebApp.MainButton.hide()
     // Проверка текущего числа
