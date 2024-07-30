@@ -22,14 +22,16 @@ public class MainServlet extends HttpServlet {
             path = "/success.html";
         } else if (path.equals("/fail")) {
             path = "/fail.html";
+        }  else if (path.equals("/unavailable")) {
+            path = "/unavailable.html";
         }
 
-        String content;
+    String content;
         try {
             content = new String(Files.readAllBytes(Paths.get("src/main/resources" + path)));
         } catch (IOException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            content = "<h1>404 - Not Found</h1>";
+            content = "<h1>404 - Ничего не найдено</h1>";
         }
 
         resp.getWriter().println(content);
