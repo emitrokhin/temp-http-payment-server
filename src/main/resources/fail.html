@@ -11,13 +11,15 @@
 <script>
     window.Telegram.WebApp.MainButton.text = "Повторить оплату"
     window.Telegram.WebApp.onEvent('mainButtonClicked', function () {
-        window.href = "/"
+        window.location.href = "/"
     })
     window.Telegram.WebApp.MainButton.show()
 </script>
 <div class="container text-center mt-5">
     <h1>Оплата не удалась!</h1>
-    <p>Убедитесь, что вводите правильные данные, код безопасности, а также проверьте баланс</p>
+    <p>Убедитесь в том, что:</p>
+    <p>* вводите правильные данные карты и код безопасности</p>
+    <p>* на карте положительный баланс</p>
 </div>
 </body>
 </html>
