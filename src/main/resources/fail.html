@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fail</title>
+    <title>Неуспешная оплата</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<script>
+    window.Telegram.WebApp.MainButton.text = "Повторить оплату"
+    window.Telegram.WebApp.onEvent('mainButtonClicked', function () {
+        window.href = "/"
+    })
+    window.Telegram.WebApp.MainButton.show()
+</script>
 <div class="container text-center mt-5">
     <h1>Оплата не удалась!</h1>
-    <a href="/" class="btn btn-primary">Повторить оплату</a>
+    <p>Убедитесь, что вводите правильные данные, код безопасности, а также проверьте баланс</p>
 </div>
 </body>
 </html>

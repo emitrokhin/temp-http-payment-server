@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Success</title>
+    <title>Успешная оплата</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<script>
+    window.Telegram.WebApp.MainButton.text = "Вернуться в бот"
+    window.Telegram.WebApp.onEvent('mainButtonClicked', function () {
+        window.Telegram.WebApp.close()
+    })
+    window.Telegram.WebApp.MainButton.show()
+</script>
 <div class="container text-center mt-5">
     <h1>Оплата успешна!</h1>
-    <p>В бот выслана ссылка для доступа в сообщество</p>
-    <button class="btn btn-primary" onclick="window.close()">Вернуться в бот</button>
+    <p>В бот отправлена ссылка для доступа в сообщество</p>
 </div>
 </body>
 </html>

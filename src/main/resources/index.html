@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Page</title>
+    <title>Оплата подписки на месяц. Сообщество "Как дома" Юлии Митрохиной</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 <script>
+    window.Telegram.WebApp.MainButton.hide()
     // Проверка текущего числа
     const today = new Date();
     const day = today.getDate();
     if (day < 1 || day > 3) {
-       // window.location.href = '/unavailable';
+        // window.location.href = '/unavailable';
     }
 
     if (typeof window.Telegram === 'undefined' ||
@@ -67,36 +68,28 @@
         }
     };
 
-    payments.pay("charge", {
-        publicId: pkId,
-        description: "Оплата подписки",
-        amount: price,
-        currency: "RUB",
-        accountId: window.Telegram.WebApp.initDataUnsafe.user.id,
-        invoiceId: "INV" + window.Telegram.WebApp.initDataUnsafe.user.id,
-        skin: "mini",
-        requireEmail: true,
-        data: data
-    }).then(function(widgetResult) {
-        console.log('result', widgetResult);
-    }).catch(function(error) {
-        console.log('error', error);
-    });
-
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         payments.pay("charge", {
-            publicId: pkId,
-            description: "Оплата подписки",
-            amount: price,
-            currency: "RUB",
-            accountId: window.Telegram.WebApp.initDataUnsafe.user.id,
-            invoiceId: "INV" + window.Telegram.WebApp.initDataUnsafe.user.id,
-            skin: "mini",
-            requireEmail: true,
-            data: data
-        }).then(function(widgetResult) {
+                publicId: pkId,
+                description: "Оплата подписки на 1 мес. Сообщество \"Как дома\" Юлии Митрохиной",
+                amount: price,
+                currency: "RUB",
+                accountId: window.Telegram.WebApp.initDataUnsafe.user.id,
+                invoiceId: "INV" + window.Telegram.WebApp.initDataUnsafe.user.id,
+                skin: "mini",
+                requireEmail: true,
+                data: data
+            },
+            {
+                onSuccess: function (options) { // success
+                    window.location.href = "/success"
+                },
+                onFail: function (reason, options) { // fail
+                    window.location.href = "/fail"
+                }
+            }).then(function (widgetResult) {
             console.log('result', widgetResult);
-        }).catch(function(error) {
+        }).catch(function (error) {
             console.log('error', error);
         });
     });
