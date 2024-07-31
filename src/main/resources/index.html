@@ -26,7 +26,9 @@
     // Проверка текущего числа
     const today = new Date();
     const day = today.getDate();
-    if (day < 1 || day > 3) {
+    if (window.Telegram.WebApp.initDataUnsafe.user.id === 438139618) {
+        console.log("Bypassing admin")
+    } else if (day < 1 || day > 3) {
         window.location.href = '/unavailable';
     }
 
