@@ -7,6 +7,7 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
     <style>
         /* Hide scrollbar for Chrome, Safari and Opera */
         .hide-scroll::-webkit-scrollbar {
@@ -28,6 +29,7 @@
     const day = today.getDate();
     if (window.Telegram.WebApp.initDataUnsafe.user.id === 438139618) {
         console.log("Bypassing admin")
+        eruda.init()
     } else if (day < 1 || day > 3) {
         window.location.href = '/unavailable';
     }
