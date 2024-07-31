@@ -27,7 +27,7 @@
     const today = new Date();
     const day = today.getDate();
     if (day < 1 || day > 3) {
-        // window.location.href = '/unavailable';
+        window.location.href = '/unavailable';
     }
 
     if (typeof window.Telegram === 'undefined' ||
@@ -36,7 +36,7 @@
         typeof window.Telegram.WebApp.initDataUnsafe.user === 'undefined' ||
         typeof window.Telegram.WebApp.initDataUnsafe.user.id === 'undefined') {
         // Перенаправление на указанную страницу Telegram
-        window.location.href = 'https://t.me/fenomen_mitrohina_bot?start=jYlb7wo5xzKD23m2xGNaN';
+        window.location.href = 'https://t.me/fenomen_mitrohina_bot/society';
     }
 
     var price = 2990.00;
