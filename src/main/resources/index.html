@@ -84,7 +84,7 @@
         }
     };
 
-    window.addEventListener('load', function () {
+    function initiatePayment() {
         payments.pay("charge", {
                 publicId: pkId,
                 description: "Оплата подписки на 1 мес. Сообщество \"Как дома\" Юлии Митрохиной",
@@ -98,16 +98,38 @@
             },
             {
                 onSuccess: function (options) { // success
-                    window.location.href = "/success"
+                    window.location.href = "/success";
                 },
                 onFail: function (reason, options) { // fail
-                    window.location.href = "/fail"
+                    window.location.href = "/fail";
                 }
             }).then(function (widgetResult) {
             console.log('result', widgetResult);
         }).catch(function (error) {
             console.log('error', error);
         });
+    }
+
+    window.addEventListener('load', function () {
+        const emailInput = document.querySelector('input[type="email"]');
+
+        if (emailInput) {
+            emailInput.addEventListener('input', function () {
+                const email = emailInput.value;
+                console.log('Email entered:', email);
+
+                // Обновляем поле email в объекте receipt
+                receipt.email = email;
+            });
+
+            // Запуск платежа после изменения e-mail
+            emailInput.addEventListener('change', function () {
+                initiatePayment();
+            });
+        } else {
+            console.error('Email input not found');
+            initiatePayment(); // Запуск платежа, если поле ввода не найдено
+        }
     });
 </script>
 </body>
