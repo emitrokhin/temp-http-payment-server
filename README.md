@@ -28,10 +28,12 @@ caddy run --config /etc/caddy/Caddyfile &
 
 
 
-```plantuml
-@startuml
-A -> B: Hello world!
-B -> A: Do you see the diagram?
-A -> B: In PHP storm, I do not!
-@enduml
+Here is a simple flow chart:
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
 ```
