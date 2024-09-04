@@ -29,8 +29,6 @@
     const day = today.getDate();
     if (window.Telegram.WebApp.initDataUnsafe.user.id === 438139618) {
         eruda.init()
-    } else if (window.Telegram.WebApp.initDataUnsafe.user.id === 140518578) {
-        console.log("Temp exclude 140518578")
     }
     else if (day < 1 || day > 3) {
         window.location.href = '/unavailable';
