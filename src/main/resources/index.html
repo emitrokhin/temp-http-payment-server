@@ -28,9 +28,11 @@
     const today = new Date();
     const day = today.getDate();
     if (window.Telegram.WebApp.initDataUnsafe.user.id === 438139618) {
-        console.log("Bypassing admin")
         eruda.init()
-    } else if (day < 1 || day > 3) {
+    } else if (window.Telegram.WebApp.initDataUnsafe.user.id === 438139618) {
+
+    }
+    else if (day < 1 || day > 3) {
         window.location.href = '/unavailable';
     }
 
@@ -56,35 +58,7 @@
         sbpSupport: true,
     });
 
-    var receipt = {
-        "Items": [
-            {
-                "label": "Доступ в сообщество на месяц. Юлия Митрохина",
-                "price": price,
-                "quantity": 1.00,
-                "amount": price,
-                "method": 4,
-                "object": 4,
-                "measurementUnit": "шт"
-            }
-        ],
-        "calculationPlace": "mitrohinayulya.ru",
-        "taxationSystem": 1,
-        "amounts": {
-            "electronic": price,
-            "advancePayment": 0.00,
-            "credit": 0.00,
-            "provision": 0.00
-        }
-    };
-
-    var data = {
-        CloudPayments: {
-            CustomerReceipt: receipt
-        }
-    };
-
-    function initiatePayment() {
+    window.addEventListener('load', function () {
         payments.pay("charge", {
                 publicId: pkId,
                 description: "Оплата подписки на 1 мес. Сообщество \"Как дома\" Юлии Митрохиной",
@@ -93,43 +67,20 @@
                 accountId: window.Telegram.WebApp.initDataUnsafe.user.id,
                 invoiceId: "INV" + window.Telegram.WebApp.initDataUnsafe.user.id,
                 skin: "mini",
-                requireEmail: true,
-                data: data
+                requireEmail: true
             },
             {
                 onSuccess: function (options) { // success
-                    window.location.href = "/success";
+                    window.location.href = "/success"
                 },
                 onFail: function (reason, options) { // fail
-                    window.location.href = "/fail";
+                    window.location.href = "/fail"
                 }
             }).then(function (widgetResult) {
             console.log('result', widgetResult);
         }).catch(function (error) {
             console.log('error', error);
         });
-    }
-
-    window.addEventListener('load', function () {
-        const emailInput = document.querySelector('input[type="email"]');
-
-        if (emailInput) {
-            emailInput.addEventListener('input', function () {
-                const email = emailInput.value;
-                console.log('Email entered:', email);
-
-                // Обновляем поле email в объекте receipt
-                receipt.email = email;
-            });
-
-            // Запуск платежа после изменения e-mail
-            emailInput.addEventListener('change', function () {
-                initiatePayment();
-            });
-        } else {
-            console.error('Email input not found');
-            initiatePayment(); // Запуск платежа, если поле ввода не найдено
-        }
     });
 </script>
 </body>
