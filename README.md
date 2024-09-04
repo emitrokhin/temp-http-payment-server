@@ -24,3 +24,16 @@ app.mitrohinayulya.ru {
 }
 
 caddy run --config /etc/caddy/Caddyfile &
+
+
+
+
+Here is a simple flow chart:
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
