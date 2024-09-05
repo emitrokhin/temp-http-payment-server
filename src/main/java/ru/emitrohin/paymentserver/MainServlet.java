@@ -24,6 +24,8 @@ public class MainServlet extends HttpServlet {
             path = "/fail.html";
         }  else if (path.equals("/unavailable")) {
             path = "/unavailable.html";
+        } else if (path.equals("/entry-form")) {
+            path = "/entry-form.html";
         }
 
     String content;

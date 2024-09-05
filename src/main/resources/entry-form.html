@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Успешная оплата</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<script>
+    window.Telegram.WebApp.MainButton.text = "Закрыть"
+    window.Telegram.WebApp.MainButton.close()
+
+    const userId = Telegram.WebApp.initDataUnsafe.user.id;
+    const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSd6_K-P0AvjVmrrc5wZIBEjElCxlkUYt7X7a5Ham-CzW22HCw/viewform?usp=pp_url&entry.1020782933=${userId}`;
+
+    Telegram.WebApp.openUrl(formUrl);
+</script>
+</body>
+</html>
