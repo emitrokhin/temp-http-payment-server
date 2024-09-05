@@ -9,7 +9,7 @@
 </head>
 <body>
 <script>
-    Telegram.WebApp.ready();
+    window.Telegram.WebApp.ready();
     window.Telegram.WebApp.MainButton.text = "Закрыть"
     window.Telegram.WebApp.onEvent('mainButtonClicked', function () {
         window.Telegram.WebApp.close()
@@ -19,7 +19,7 @@
     const userId = Telegram.WebApp.initDataUnsafe.user.id;
     const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSd6_K-P0AvjVmrrc5wZIBEjElCxlkUYt7X7a5Ham-CzW22HCw/viewform?usp=pp_url&entry.1020782933=${userId}`;
 
-    Telegram.WebApp.openUrl(formUrl);
+    window.Telegram.WebApp.openLink(formUrl);
 </script>
 </body>
 </html>
