@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Оплата подписки на месяц. Сообщество "Как дома" Юлии Митрохиной</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+    <jsp:include page="common-scripts.jsp" />
+
     <style>
-        /* Hide scrollbar for Chrome, Safari and Opera */
         .hide-scroll::-webkit-scrollbar {
             display: none;
         }
 
-        /* Hide scrollbar for IE, Edge and Firefox */
         .hide-scroll {
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
@@ -27,20 +24,12 @@
     // Проверка текущего числа
     const today = new Date();
     const day = today.getDate();
+
     if (window.Telegram.WebApp.initDataUnsafe.user.id === 438139618) {
-        eruda.init()
+
     }
     else if (day < 1 || day > 3) {
         window.location.href = '/unavailable';
-    }
-
-    if (typeof window.Telegram === 'undefined' ||
-        typeof window.Telegram.WebApp === 'undefined' ||
-        typeof window.Telegram.WebApp.initDataUnsafe === 'undefined' ||
-        typeof window.Telegram.WebApp.initDataUnsafe.user === 'undefined' ||
-        typeof window.Telegram.WebApp.initDataUnsafe.user.id === 'undefined') {
-        // Перенаправление на указанную страницу Telegram
-        window.location.href = 'https://t.me/fenomen_mitrohina_bot/society';
     }
 
     var price = 2990.00;
@@ -56,6 +45,40 @@
         sbpSupport: true,
     });
 
+    var receipt = {
+        "Items": [
+            {
+                "label": "Оплата подписки на 1 мес. Сообщество \"Как дома\" Юлии Митрохиной",
+                "price": price,
+                "quantity": 1.00,
+                "amount": price,
+                "method": 4,
+                "object": 4,
+                "measurementUnit": "шт"
+            }
+        ],
+        email: ${requestScope.email},
+        "calculationPlace": "mitrohinayulya.ru",
+        "taxationSystem": 1,
+        "amounts": {
+            "electronic": price,
+            "advancePayment": 0.00,
+            "credit": 0.00,
+            "provision": 0.00
+        }
+    };
+
+    var data = {
+        CloudPayments: {
+            CustomerReceipt: receipt,
+            recurrent: {
+                interval: 'Month',
+                period: 1,
+                customerReceipt: receipt
+            }
+        }
+    };
+
     window.addEventListener('load', function () {
         payments.pay("charge", {
                 publicId: pkId,
@@ -65,7 +88,7 @@
                 accountId: window.Telegram.WebApp.initDataUnsafe.user.id,
                 invoiceId: "INV" + window.Telegram.WebApp.initDataUnsafe.user.id,
                 skin: "mini",
-                requireEmail: true
+                data: data
             },
             {
                 onSuccess: function (options) { // success

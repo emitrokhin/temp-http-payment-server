@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Успешная оплата</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="telegram-js.js"></script>
 </head>
 <body>
 <script>
