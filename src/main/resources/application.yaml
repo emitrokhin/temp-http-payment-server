@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: Payment Server - DEV
+
+  datasource:
+    url: jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+    username: postgres.bejpczdkansztszqdbvd
+    password: Wecmax-0wenma-vomsej
+    driver-class-name: org.postgresql.Driver
+
+  thymeleaf:
+    cache: false
+    prefix: file:src/main/resources/templates/
+
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  servlet:
+    context-path: /
+  error:
+    path: /error
+
+app:
+  publicKey: pk_885fd2d2190460531c2c9a1fc4676
+
+  telegram:
+    botToken: 2200734999:AAEBOJ8hC8Ppoope_R2X-M7dSfl4L_UEfAM
+    authExpirationTime: 300
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        web:
+          servlet:
+            mvc:
+              method:
+                annotation:
+                  ServletModelAttributeMethodProcessor: DEBUG

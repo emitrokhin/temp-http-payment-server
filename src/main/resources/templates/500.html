@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Ошибка</title>
+</head>
+<body>
+<div class="container mt-5">
+    <!-- Форма оплаты -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <p>Извините, возникла ошибка</p>
+            <p>Если она повторяется, пожалуйста свяжитесь со <a href="https://t.me/fenomen_mitrohina_assistant">службой заботы</a></p>
+        </div>
+    </div>
+
+    <th:block th:if="${@environment.acceptsProfiles('dev')}">
+        <div class="fixed-bottom bg-light p-3">
+            <div class="container">
+                <a href="/" class="btn btn-primary w-100 mt-2">
+                    На главную страницу
+                </a>
+            </div>
+        </div>
+    </th:block>
+</div>
+<th:block th:fragment="scripts">
+    <th:block th:if="${!@environment.acceptsProfiles('dev')}">
+        <script th:inline="javascript">
+            Telegram.WebApp.MainButton.text = "На главную";
+            Telegram.WebApp.onEvent('mainButtonClicked', function () {
+                window.location.href = "/"
+            });
+            Telegram.WebApp.MainButton.show();
+
+            Telegram.WebApp.SecondaryButton.text = "Вернуться в бот";
+            Telegram.WebApp.SecondaryButton.position = "right";
+            Telegram.WebApp.onEvent('secondaryButtonClicked', function () {
+                Telegram.WebApp.close();
+            });
+            Telegram.WebApp.SecondaryButton.show();
+        </script>
+    </th:block>
+</th:block>
+</body>
+</html>

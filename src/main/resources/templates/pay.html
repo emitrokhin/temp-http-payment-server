@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <title>Форма оплаты</title>
+    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+    <style>
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scroll {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+    </style>
+</head>
+<body class="hide-scroll">
+
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        Telegram.WebApp.BackButton.hide();
+        Telegram.WebApp.MainButton.hide();
+        Telegram.WebApp.SecondaryButton.hide();
+
+        var price = 2990.00;
+        var payments = new cp.CloudPayments({
+            language: "ru-RU"
+        });
+
+        // Получаем Telegram ID и другие данные пользователя
+        var telegramId = /*[[${telegramId}]]*/ '';
+        var pkId = /*[[${publicKeyId}]]*/ '';  // Публичный ключ CloudPayments
+        var firstName = /*[[${firstName}]]*/ '';  // Получаем имя пользователя
+        var lastName = /*[[${lastName}]]*/ '';  // Получаем фамилию
+        var phone = /*[[${phone}]]*/ '';  // Получаем телефон
+        var email = /*[[${email}]]*/ '';  // Получаем email пользователя
+
+        // Формируем чек (receipt) для отправки в CloudPayments
+        var receipt = {
+            "Items": [
+                {
+                    "label": "Оплата подписки на 1 мес. Сообщество \"Как дома\" Юлии Митрохиной",
+                    "price": price,
+                    "quantity": 1.00,
+                    "amount": price,
+                    "method": 4,  // Полный расчет
+                    "object": 4,  // Услуги
+                    "measurementUnit": "шт"
+                }
+            ],
+            email: email,  // Подставляем email пользователя
+            "calculationPlace": "mitrohinayulya.ru",  // Место расчета
+            "taxationSystem": 1,  // Система налогообложения
+            "amounts": {
+                "electronic": price,
+                "advancePayment": 0.00,
+                "credit": 0.00,
+                "provision": 0.00
+            }
+        };
+
+        // Объект с дополнительными данными для рекуррентных платежей (автоплатежи)
+        var data = {
+            CloudPayments: {
+                CustomerReceipt: receipt,
+                recurrent: {
+                    interval: 'Month',  // Интервал - месяц
+                    period: 1,  // Период - 1 месяц
+                    customerReceipt: receipt
+                }
+            }
+        };
+
+        window.addEventListener('load', function () {
+            payments.pay('charge', {
+                    publicId: pkId,  // Ваш публичный ключ CloudPayments
+                    description: "Оплата подписки на 1 мес. Сообщество \"Как дома\" Юлии Митрохиной",  // Описание товара
+                    amount: price,  // Сумма к оплате
+                    currency: "RUB",  // Валюта
+                    accountId: telegramId,  // ID пользователя для идентификации
+                    invoiceId: "INV" + telegramId + moment(Date.now()).format('YYYYMMDD'),  // Номер счета (уникальный для пользователя)
+                    skin: "mini",  // Стиль интерфейса
+                    autoClose: 3,
+                    data: data  // Дополнительные данные
+                },
+                {
+                    onSuccess: function (options) {
+                        window.location.href = "/success";
+                    },
+                    onFail: function (reason, options) {
+                        window.location.href = "/fail";
+                    }
+                }).then(function (widgetResult) {
+                console.log('result', widgetResult);
+            }).catch(function (error) {
+                console.log('error', error);
+            });
+        });
+    </script>
+</th:block>
+</body>
+</html>

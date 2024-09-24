@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль</title>
+</head>
+<body>
+<div class="container mt-5">
+
+    <!-- Карточка с информацией о подписке -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Информация о подписке
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                <strong>Дата следующего списания:</strong>
+                <span th:text="${personalData.nextBillingDate}"></span>
+            </p>
+            <form th:action="@{/cancelSubscription}" method="post">
+                <button type="submit" class="btn btn-danger">Отменить подписку</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Профиль
+        </div>
+        <div class="card-body">
+            <h5 class="card-title" th:text="'Имя: ' + ${personalData.firstName} + ' ' + ${personalData.lastName}"></h5>
+            <p class="card-text">
+                <strong>Телефон:</strong> <span th:text="${personalData.phone}"></span>
+            </p>
+            <p class="card-text">
+                <strong>Email:</strong> <span th:text="${personalData.email}"></span>
+            </p>
+            <p class="card-text">
+                <strong>Дата рождения:</strong> <span th:text="${personalData.dateOfBirth}"></span>
+            </p>
+            <p class="card-text">
+                <strong>Город:</strong> <span th:text="${personalData.city}"></span>
+            </p>
+            <p class="card-text">
+                <strong>Профессия:</strong> <span th:text="${personalData.profession}"></span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        Telegram.WebApp.BackButton.show();
+
+        Telegram.WebApp.MainButton.text = "Сохранить изменения";
+        Telegram.WebApp.MainButton.show();
+
+        Telegram.WebApp.SecondaryButton.hide();
+    </script>
+</th:block>
+
+</body>
+</html>

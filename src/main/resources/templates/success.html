@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <title>Успешная оплата</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Форма оплаты -->
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h1>Вы успешно оплатили подписку 🎉</h1>
+                        <p id="next-billing-date">Идет загрузка даты следующего списания...</p>
+                        <p>Чтобы отменить автоматическое продление, перейдите в свой профиль</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        function checkSubscription() {
+            fetch('/api/subscription')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        setTimeout(checkSubscription, 1000); // Повторяем запрос через 1 секунду
+                    }
+                })
+                .then(data => {
+                    if (data) {
+                        var date = new Date(data.subscriptionDate);
+                        date.setMonth(date.getMonth() + 1);
+                        document.getElementById('next-billing-date').innerText = 'Дата следующего списания: ' + date.toLocaleDateString('ru-RU');
+                    }
+                })
+                .catch(error => console.error('Ошибка при получении подписки', error));
+        }
+
+        checkSubscription();
+
+        Telegram.WebApp.MainButton.text = "К сообществу";
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            Telegram.WebApp.openTelegramLink('https://t.me/+oSjq-iHU_k5iMGQy');
+        });
+        Telegram.WebApp.MainButton.show();
+
+        Telegram.WebApp.SecondaryButton.text = "Профиль";
+        Telegram.WebApp.SecondaryButton.position = "right";
+        Telegram.WebApp.onEvent('secondaryButtonClicked', function () {
+            window.location.href = "/profile"
+        });
+        Telegram.WebApp.SecondaryButton.show();
+    </script>
+</th:block>
+</body>
+</html>

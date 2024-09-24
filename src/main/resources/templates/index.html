@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <title>Форма оплаты</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <!-- Форма оплаты -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h6>Подписка</h6>
+            <h2>₽2990 в месяц</h2>
+            <div class="card">
+                <div class="card-body">
+                    <form th:action="@{/pay}" th:object="${personalDataPayment}" method="post" id="personalDataPayment" novalidate>
+                        <!-- Поле 'Имя' -->
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">Имя:</label>
+                            <input type="text" class="form-control" id="firstName" th:field="*{firstName}" required minlength="2" maxlength="100">
+                            <div class="invalid-feedback">Имя должно содержать не менее 2 символов.</div>
+                        </div>
+
+                        <!-- Поле 'Фамилия' -->
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">Фамилия:</label>
+                            <input type="text" class="form-control" id="lastName" th:field="*{lastName}" required minlength="2" maxlength="100">
+                            <div class="invalid-feedback">Фамилия должна содержать не менее 2 символов.</div>
+                        </div>
+
+                        <!-- Поле 'Телефон' -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Телефон:</label>
+                            <input type="text" class="form-control" id="phone" placeholder="+_ (___) ___-__-__" th:field="*{phone}" required minlength="10" maxlength="15">
+                            <div class="form-text">
+                                Никакого спама и рекламы. Обещаем!
+                            </div>
+                            <div class="invalid-feedback">Введите корректный номер телефона.</div>
+                        </div>
+
+                        <!-- Поле 'Email' -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="email" class="form-control" id="email" placeholder="example@mail.com"  th:field="*{email}" required maxlength="100">
+                            <div class="invalid-feedback">Введите корректный email. Используйте только латинские буквы.</div>
+                        </div>
+
+                        <small>
+                            Оплачивая данный заказ, вы соглашаетесь с
+                            <a href="https://mitrohinayulya.ru/privacy/society" target="_blank">политикой обработки персональных данных</a>
+                            и
+                            <a href="https://mitrohinayulya.ru/agreement/society" target="_blank">пользовательским соглашением</a>.
+                        </small>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<th:block th:fragment="scripts">
+    <th:block th:if="${!@environment.acceptsProfiles('dev')}">
+        <script th:inline="javascript">
+            Telegram.WebApp.MainButton.text = "Оформить подписку";
+            Telegram.WebApp.MainButton.hasShineEffect = true;
+            Telegram.WebApp.onEvent('mainButtonClicked', function () {
+                document.getElementById('personalDataPayment').requestSubmit();
+            });
+            Telegram.WebApp.MainButton.show();
+            Telegram.WebApp.SecondaryButton.hide();
+            Telegram.WebApp.BackButton.hide();
+        </script>
+    </th:block>
+
+    <script th:inline="javascript">
+        //TODO исправить валидацию
+        $(document).ready(function () {
+
+            // Маска для международного номера телефона
+            var maskBehavior = function(val) {
+                return val.replace(/\D/g, '').length > 11 ?
+                    '+00 (000) 000-0000' : '+0 (000) 000-00-000';
+            };
+
+            $('#phone').mask(maskBehavior, {
+                onKeyPress: function(val, e, field, options) {
+                    field.mask(maskBehavior.apply({}, arguments), options);
+                }
+            });
+
+            // Проверка телефона (как минимум 11 цифр)
+            function validatePhone(phone) {
+                const phoneDigits = phone.replace(/\D/g, ''); // Удаляем все символы кроме цифр
+                return phoneDigits.length >= 11; // Минимум 11 цифр
+            }
+
+            // Проверка email
+            function validateEmail(email) {
+                // Более строгая проверка email с доменом второго уровня
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return emailPattern.test(email);
+            }
+
+            // Обработка формы
+            $('#personalDataPayment').on('submit', function(event) {
+                var form = this;
+                var phone = $('#phone').val();
+                var email = $('#email').val();
+                var phoneValid = validatePhone(phone);
+                var emailValid = validateEmail(email);
+
+                // Проверяем, валидна ли форма и дополнительные поля
+                if (!form.checkValidity() || !phoneValid || !emailValid) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Добавляем классы валидации для телефона
+                    if (!phoneValid) {
+                        $('#phone').addClass('is-invalid').removeClass('is-valid');
+                    } else {
+                        $('#phone').addClass('is-valid').removeClass('is-invalid');
+                    }
+
+                    // Добавляем классы валидации для email
+                    if (!emailValid) {
+                        $('#email').addClass('is-invalid').removeClass('is-valid');
+                    } else {
+                        $('#email').addClass('is-valid').removeClass('is-invalid');
+                    }
+                } else {
+                    // Очищаем телефон от маски (оставляем только цифры) перед отправкой формы
+                    var cleanPhone = phone.replace(/\D/g, '');
+                    $('#phone').val(cleanPhone);
+                    form.submit();
+                    // Добавляем класс для отображения стилей валидации
+                    form.classList.add('was-validated');
+                }
+            });
+        });
+    </script>
+</th:block>
+</body>
+</html>

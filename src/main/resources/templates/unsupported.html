@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Обновите пожалуйста телеграм</title>
+</head>
+<body>
+
+<!-- //TODO implement -->
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1>Обновите Telegram</h1>
+        <p>Ваша версия телеграм не поддерживает новые возможности Telegram</p>
+        <th:block th:if="${@environment.acceptsProfiles('dev')}">
+            <div class="fixed-bottom bg-light p-3">
+                <div class="container">
+                        <a href="https://telegram.org/" class="btn btn-primary w-100 mt-2">
+                            Обновить
+                        </a>
+                </div>
+            </div>
+        </th:block>
+    </div>
+</div>
+
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+
+        if (Telegram.WebApp.isVersionAtLeast("7.10")){
+            Telegram.WebApp.SecondaryButton.text = "Пропустить";
+            Telegram.WebApp.onEvent('secondaryButtonClicked', function () {
+                Telegram.WebApp.close();
+            });
+            Telegram.WebApp.SecondaryButton.show();
+        }
+
+        // Определение платформы
+        function getMobileOperatingSystem() {
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+            // iOS
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'iOS';
+            }
+
+            // Android
+            if (/android/i.test(userAgent)) {
+                return 'Android';
+            }
+
+            return 'unknown';
+        }
+
+        // Установка ссылки в зависимости от платформы
+        var platform = getMobileOperatingSystem();
+        var updateLink;
+
+        if (platform === 'iOS') {
+            updateLink.href = 'https://apps.apple.com/ru/app/telegram-messenger/id686449807';
+            updateLink.innerText = 'Обновить Telegram в App Store';
+        } else if (platform === 'Android') {
+            updateLink.href = 'https://play.google.com/store/apps/details?id=org.telegram.messenger';
+            updateLink.innerText = 'Обновить Telegram в Google Play';
+        } else {
+            updateLink.href = 'https://telegram.org/';
+            updateLink.innerText = 'Обновить Telegram на сайте';
+        }
+
+        Telegram.WebApp.MainButton.text = "Обновить Telegram";
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            window.location.href = "/profile"
+        });
+        Telegram.WebApp.MainButton.show();
+
+    </script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Успешная оплата</title>
+</head>
+<body>
+
+    <div class="container mt-5">
+        <!-- Форма оплаты -->
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h1>Ошибка оплаты 😞</h1>
+                        <p>К сожалению, нам не удалось выполнить списание</p>
+                        <p>Если возникают вопросы, пожалуйста свяжитесь со <a href="https://t.me/fenomen_mitrohina_assistant">службой заботы</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        Telegram.WebApp.MainButton.text = "Повторить попытку";
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            window.location.href = "/"
+        });
+        Telegram.WebApp.MainButton.show();
+
+        Telegram.WebApp.SecondaryButton.hide();
+    </script>
+</th:block>
+</body>
+</html>
