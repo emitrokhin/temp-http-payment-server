@@ -1,9 +1,9 @@
 spring:
   application:
-    name: Payment Server - Prod
+    name: Payment Server - 0.3.1 - PROD
 
   datasource:
-    url: jdbc:postgresql://:5432/default_db
+    url: jdbc:postgresql://${DB_IP}:5432/${DB_NAME}
 
 app:
   telegram:
