@@ -12,15 +12,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         if (window.Telegram.WebApp && window.Telegram.WebApp.initData) {
             /* <![CDATA[ */
-            var cookieOptions;
-
-            /*[[${#arrays.contains(@environment.activeProfiles, 'production')}]]*/
-            cookieOptions = 'path=/; Secure; SameSite=Lax; Max-Age=3600';
-            /*[/[[${#arrays.contains(@environment.activeProfiles, 'production')}]]*/
-
-            /*[[${!#arrays.contains(@environment.activeProfiles, 'production')}]]*/
-            cookieOptions = 'path=/; SameSite=Lax; Max-Age=3600';
-            /*[/[[${!#arrays.contains(@environment.activeProfiles, 'production')}]]*/
+            var cookieOptions = 'path=/; SameSite=Lax; Max-Age=3600';
 
             document.cookie = `initData=${window.Telegram.WebApp.initData}; ${cookieOptions}`;
             /* ]]> */
