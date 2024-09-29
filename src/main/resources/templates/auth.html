@@ -12,7 +12,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         if (window.Telegram.WebApp && window.Telegram.WebApp.initData) {
             /* <![CDATA[ */
-            var cookieOptions = 'path=/; SameSite=Lax; Max-Age=3600';
+            var cookieOptions = 'path=/; SameSite=None; Max-Age=3600';
 
             document.cookie = `initData=${window.Telegram.WebApp.initData}; ${cookieOptions}`;
             /* ]]> */
