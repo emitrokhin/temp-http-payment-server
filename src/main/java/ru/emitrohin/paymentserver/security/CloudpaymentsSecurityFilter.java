@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.emitrohin.paymentserver.config.PublicKeyProperty;
+import ru.emitrohin.paymentserver.config.CloudpaymentsProperties;
 import ru.emitrohin.paymentserver.util.IpUtil;
 
 import javax.crypto.Mac;
@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Set;
 
-@EnableConfigurationProperties(PublicKeyProperty.class)
+@EnableConfigurationProperties(CloudpaymentsProperties.class)
 @RequiredArgsConstructor
 @Configuration
 public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
@@ -29,7 +29,7 @@ public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
             "194.39.64.130/32", "92.63.206.131/32", "185.98.81.0/28"
     );
 
-    private final PublicKeyProperty publicKeyProperty;
+    private final CloudpaymentsProperties publicKeyProperty;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

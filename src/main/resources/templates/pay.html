@@ -17,8 +17,12 @@
 </head>
 <body class="hide-scroll">
 
+</body>
+
 <th:block th:fragment="scripts">
     <script th:inline="javascript">
+        Telegram.WebApp.isClosingConfirmationEnabled = true;
+
         Telegram.WebApp.BackButton.hide();
         Telegram.WebApp.MainButton.hide();
         Telegram.WebApp.SecondaryButton.hide();
@@ -60,15 +64,9 @@
             }
         };
 
-        // Объект с дополнительными данными для рекуррентных платежей (автоплатежи)
         var data = {
             CloudPayments: {
-                CustomerReceipt: receipt,
-                recurrent: {
-                    interval: 'Month',  // Интервал - месяц
-                    period: 1,  // Период - 1 месяц
-                    customerReceipt: receipt
-                }
+                CustomerReceipt: receipt
             }
         };
 
@@ -99,5 +97,4 @@
         });
     </script>
 </th:block>
-</body>
 </html>

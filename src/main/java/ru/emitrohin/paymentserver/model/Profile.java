@@ -12,12 +12,8 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-public class PersonalData {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(nullable = false)
-    private Long id;
+@Table(name = "profiles")
+public class Profile extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private Long telegramId;

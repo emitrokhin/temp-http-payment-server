@@ -11,16 +11,12 @@ import java.time.LocalDateTime;
 @Table(name = "transactions")
 @Getter
 @Setter
-public class Transaction {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+public class Transaction extends BaseEntity {
 
     @Column(nullable = false)
     private long telegramId;         // Идентификатор пользователя или аккаунта
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private long transactionId;        // Идентификатор транзакции
 
     @Column(nullable = false, precision = 19, scale = 2)

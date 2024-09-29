@@ -22,10 +22,10 @@
         </th:block>
     </div>
 </div>
-
+</body>
 <th:block th:fragment="scripts">
     <script th:inline="javascript">
-
+        Telegram.WebApp.isClosingConfirmationEnabled = false
         if (Telegram.WebApp.isVersionAtLeast("7.10")){
             Telegram.WebApp.SecondaryButton.text = "Пропустить";
             Telegram.WebApp.onEvent('secondaryButtonClicked', function () {
@@ -53,7 +53,7 @@
 
         // Установка ссылки в зависимости от платформы
         var platform = getMobileOperatingSystem();
-        var updateLink;
+        var updateLink = {};
 
         if (platform === 'iOS') {
             updateLink.href = 'https://apps.apple.com/ru/app/telegram-messenger/id686449807';
@@ -74,5 +74,4 @@
 
     </script>
 </th:block>
-</body>
 </html>

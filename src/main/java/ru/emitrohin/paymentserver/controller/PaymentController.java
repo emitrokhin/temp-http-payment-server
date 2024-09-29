@@ -10,44 +10,46 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import ru.emitrohin.paymentserver.config.PublicKeyProperty;
-import ru.emitrohin.paymentserver.dto.FailedPaymentRequest;
-import ru.emitrohin.paymentserver.dto.PersonalDataPaymentRequest;
-import ru.emitrohin.paymentserver.service.PersonalDataService;
+import ru.emitrohin.paymentserver.config.CloudpaymentsProperties;
+import ru.emitrohin.paymentserver.dto.profile.ProfilePaymentDTO;
+import ru.emitrohin.paymentserver.service.FirstRunService;
+import ru.emitrohin.paymentserver.service.ProfileService;
 import ru.emitrohin.paymentserver.service.SubscriptionService;
 import ru.emitrohin.paymentserver.service.TelegramUserDataService;
 
 @Controller
 @RequiredArgsConstructor
-@EnableConfigurationProperties(PublicKeyProperty.class)
+@EnableConfigurationProperties(CloudpaymentsProperties.class)
 public class PaymentController {
 
     private final TelegramUserDataService telegramUserDataService;
 
-    private final PersonalDataService personalDataService;
+    private final ProfileService profileService;
 
     private final SubscriptionService subscriptionService;
 
-    private final PublicKeyProperty property;
+    private final FirstRunService firstRunService;
 
-    //TODO учет стартовавших оплату не сделавших
+    private final CloudpaymentsProperties property;
+
+    //TODO учет стартовавших оплату не сделавших, чтобы сообщить ботом, что надо оплатить
     @PostMapping("/pay")
-    public String pay(@Valid @ModelAttribute("personalDataPayment") PersonalDataPaymentRequest personalDataPaymentRequest, BindingResult bindingResult, Model model) {
+    public String pay(@Valid @ModelAttribute("profilePaymentForm") ProfilePaymentDTO updateRequest, BindingResult bindingResult, Model model) {
         var telegramId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
 
         // есть ли такой пользователь?
         var userData = telegramUserDataService.findByTelegramId(telegramId);
         if (userData.isEmpty()) {
             bindingResult.rejectValue("telegramId", "error.personalDataForm", "Пользователь с таким Telegram ID не найден");
-            return "index";
+            return "redirect:/index";
         } else {
             // есть ли ошибки?
             if (bindingResult.hasErrors()) {
-                return "index";
+                return "redirect:/index";
             }
             // оплачена ли подписка?
             if (subscriptionService.hasPaidSubscription(telegramId)) {
-                return "success";
+                return "redirect:/success";
             }
 
             // создана ли подписка ?
@@ -56,20 +58,24 @@ public class PaymentController {
                 subscriptionService.createPendingSubscription(telegramId);
             }
 
-            personalDataService.saveOrUpdate(telegramId, personalDataPaymentRequest);
+            profileService.saveOrUpdateProfilePayment(telegramId, updateRequest);
         }
 
         model.addAttribute("telegramId", telegramId);
         model.addAttribute("publicKeyId", property.publicKey());
-        model.addAttribute("firstName", personalDataPaymentRequest.getFirstName());
-        model.addAttribute("lastName", personalDataPaymentRequest.getLastName());
-        model.addAttribute("phone", personalDataPaymentRequest.getPhone());
-        model.addAttribute("email", personalDataPaymentRequest.getEmail());
+        model.addAttribute("firstName", updateRequest.firstName());
+        model.addAttribute("lastName", updateRequest.lastName());
+        model.addAttribute("phone", updateRequest.phone());
+        model.addAttribute("email", updateRequest.email());
         return "pay";
     }
 
     @GetMapping("/success")
-    public String success() {
+    public String success(Model model) {
+        var telegramId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        var firstRunEntry = firstRunService.findFirstRun(telegramId);
+        model.addAttribute("firstRun", firstRunEntry.isEmpty());
         return "success";
     }
 

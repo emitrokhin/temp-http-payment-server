@@ -3,7 +3,7 @@ package ru.emitrohin.paymentserver.dto.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import ru.emitrohin.paymentserver.dto.CloudpaymentsRequest;
+import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.model.Transaction;
 
 @Mapper(componentModel = "spring")

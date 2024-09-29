@@ -2,63 +2,184 @@
 <html lang="ru" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
 <head>
-    <meta charset="UTF-8">
     <title>Профиль</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-<div class="container mt-5">
-
-    <!-- Карточка с информацией о подписке -->
-    <div class="card mb-4">
-        <div class="card-header">
-            Информация о подписке
-        </div>
-        <div class="card-body">
-            <p class="card-text">
-                <strong>Дата следующего списания:</strong>
-                <span th:text="${personalData.nextBillingDate}"></span>
-            </p>
-            <form th:action="@{/cancelSubscription}" method="post">
-                <button type="submit" class="btn btn-danger">Отменить подписку</button>
-            </form>
-        </div>
-    </div>
-
+<div class="container mt-2">
+    <h1>Профиль</h1>
     <div class="card">
-        <div class="card-header">
-            Профиль
-        </div>
         <div class="card-body">
-            <h5 class="card-title" th:text="'Имя: ' + ${personalData.firstName} + ' ' + ${personalData.lastName}"></h5>
-            <p class="card-text">
-                <strong>Телефон:</strong> <span th:text="${personalData.phone}"></span>
-            </p>
-            <p class="card-text">
-                <strong>Email:</strong> <span th:text="${personalData.email}"></span>
-            </p>
-            <p class="card-text">
-                <strong>Дата рождения:</strong> <span th:text="${personalData.dateOfBirth}"></span>
-            </p>
-            <p class="card-text">
-                <strong>Город:</strong> <span th:text="${personalData.city}"></span>
-            </p>
-            <p class="card-text">
-                <strong>Профессия:</strong> <span th:text="${personalData.profession}"></span>
-            </p>
+            <form th:action="@{/api/profile/update}" method="post" id="profileForm">
+                <!-- Имя -->
+                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                    <label for="firstName">Имя</label>
+                    <input type="text" id="firstName" name="firstName" class="form-control"
+                           th:value="${profileForm.firstName}" required>
+                </div>
+
+                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                    <label for="lastName">Фамилия</label>
+                    <input type="text" id="lastName" name="lastName" class="form-control"
+                           th:value="${profileForm.lastName}" required>
+                </div>
+
+                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                    <label for="phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" class="form-control"
+                           th:value="${profileForm.phone}" required
+                           pattern="^\+?[0-9]{10,15}$" title="Введите корректный номер телефона">
+                </div>
+
+                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                    <label for="email">Электронная почта</label>
+                    <input type="email" id="email" name="email" class="form-control"
+                           th:value="${profileForm.email}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="dateOfBirth">Дата рождения</label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control"
+                           th:value="${profileForm.dateOfBirth != null ? #temporals.format(profileForm.dateOfBirth, 'yyyy-MM-dd') : ''}">
+                    <div class="form-text">
+                        Очень хочу поздравить с днем рождения 🌸
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="city">Город</label>
+                    <input type="text" id="city" name="city" class="form-control"
+                           th:value="${profileForm.city}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="profession">Профессия</label>
+                    <input type="text" id="profession" name="profession" class="form-control"
+                           th:value="${profileForm.profession}">
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="toast-body" id="toastMessage">
+        </div>
+    </div>
+</div>
+</body>
 <th:block th:fragment="scripts">
     <script th:inline="javascript">
-        Telegram.WebApp.BackButton.show();
+        const form = document.getElementById('profileForm');
+        let initialFormDataString = JSON.stringify(Object.fromEntries(new FormData(form).entries()));
 
-        Telegram.WebApp.MainButton.text = "Сохранить изменения";
+        const toastEl = document.getElementById('liveToast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toast = new bootstrap.Toast(toastEl);
+
+        function isFormChanged() {
+            const currentFormDataString = JSON.stringify(Object.fromEntries(new FormData(form).entries()));
+            return currentFormDataString !== initialFormDataString;
+        }
+
+        function checkFormValidity() {
+            // Проверка валидности формы
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+        }
+
+        //TODO добавить иконку загрузки и сделать async
+        function saveData() {
+            // Сбор данных формы
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Отправка данных на сервер
+            fetch('/api/profile/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    /* 'X-CSRF-TOKEN': Добавьте здесь токен CSRF, если требуется */
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        Telegram.WebApp.MainButton.hide();
+                        initialFormDataString = JSON.stringify(data); // Обновляем исходные данные
+                        toastMessage.textContent = '✅ Данные успешно сохранены.';
+                        toast.show();
+                    } else {
+                        toastMessage.textContent = '❌Ошибка при сохранении данных: ' + JSON.stringify(response.body);
+                        toast.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastMessage.textContent = '❌ Ошибка при сохранении данных: ' + error;
+                    toast.show();
+                });
+        }
+    </script>
+    <script th:inline="javascript" th:if="${firstRun}">
+        Telegram.WebApp.isClosingConfirmationEnabled = true;
+        Telegram.WebApp.BackButton.hide()
+        Telegram.WebApp.MainButton.text = "Продолжить";
+        Telegram.WebApp.MainButton.hasShineEffect = true;
+         Telegram.WebApp.onEvent('mainButtonClicked', function () {
+             if (isFormChanged()) {
+                 checkFormValidity()
+                 saveData()
+                 window.location.href = "/first-run"
+             } else {
+                 let params = {}
+                 params.title = "Вы заполнили не все данные в профиле. 😞"
+                 params.message = "Мы хотели бы лучше узнать вас, чтобы сделать ваше пребывание в сообществе ещё более полезным и персонализированным. Хотя заполнение профиля необязательно, ваша информация поможет нам предлагать более подходящие рекомендации и активности."
+                 params.buttons = [{
+                     "id": "skip",
+                     "type": "default",
+                     "text": "Пропустить"
+                 }, {
+                     "type": "default",
+                     "text": "Заполнить"
+                 }]
+                 Telegram.WebApp.showPopup(params, function (id) {
+                     if (id === "skip") {
+                         window.location.href = "/first-run"
+                     }
+                 })
+             }
+         })
         Telegram.WebApp.MainButton.show();
+    </script>
+    <script th:inline="javascript" th:if="${!firstRun}">
+        Telegram.WebApp.isClosingConfirmationEnabled = false;
 
+        Telegram.WebApp.BackButton.onClick(function () {
+            window.location.href = "/"
+        })
+
+        Telegram.WebApp.BackButton.show();
+        Telegram.WebApp.MainButton.hide();
         Telegram.WebApp.SecondaryButton.hide();
+
+        form.addEventListener('input', function() {
+            if (isFormChanged()) {
+                Telegram.WebApp.MainButton.setText("Сохранить изменения");
+                Telegram.WebApp.MainButton.show();
+            } else {
+                Telegram.WebApp.MainButton.hide();
+            }
+        });
+
+        Telegram.WebApp.MainButton.onClick('mainButtonClicked', function () {
+            checkFormValidity()
+            saveData()
+        });
     </script>
 </th:block>
 
-</body>
 </html>

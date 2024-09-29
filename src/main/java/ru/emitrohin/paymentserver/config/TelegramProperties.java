@@ -9,6 +9,9 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public record TelegramProperties(
         @NotNull String botToken,
-        @Positive long authExpirationTime
+        @Positive long authExpirationTime,
+        @NotNull String societyLink, //TODO validate URL
+        @NotNull String societyId,
+        @NotNull Long ownerId
 ) {
 }

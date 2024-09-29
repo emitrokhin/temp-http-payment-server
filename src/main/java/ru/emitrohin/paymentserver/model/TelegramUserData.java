@@ -5,22 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "all_incoming_users")
 @Getter
 @Setter
-public class TelegramUserData implements Serializable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(nullable = false)
-    private Long id;
+public class TelegramUserData extends BaseEntity {
 
     @Column(nullable = false)
     private Long telegramId;
@@ -37,16 +27,9 @@ public class TelegramUserData implements Serializable {
     @Size(max = 10, message = "Код языка не должен превышать 10 символов")
     private String languageCode;
 
+    @Column(nullable = false)
     private Boolean allowsWriteToPm;
 
     @Size(max = 255, message = "URL фотографии не должен превышать 255 символов")
     private String photoUrl;
-
-    @Column(nullable = false)
-    @CreationTimestamp
-    private ZonedDateTime createdAt = ZonedDateTime.now();
-
-    @Column(nullable = false)
-    @UpdateTimestamp
-    private ZonedDateTime updatedAt = ZonedDateTime.now();
 }

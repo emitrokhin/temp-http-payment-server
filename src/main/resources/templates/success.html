@@ -5,25 +5,31 @@
     <title>Успешная оплата</title>
 </head>
 <body>
-    <div class="container mt-5">
+    <div class="container mt-4">
         <!-- Форма оплаты -->
         <div class="row justify-content-center">
             <div class="col-md-6">
+                <h1>Ты успешно оплатила подписку 🎉</h1>
                 <div class="card">
                     <div class="card-body">
-                        <h1>Вы успешно оплатили подписку 🎉</h1>
-                        <p id="next-billing-date">Идет загрузка даты следующего списания...</p>
-                        <p>Чтобы отменить автоматическое продление, перейдите в свой профиль</p>
+                        <p>Спасибо за доверие и рада приветствовать тебя в моем сообществе ☺️</p>
+                        <div th:if="${firstRun}">
+                            <p>Чтобы сделать твое пребывание ещё более комфортным и полезным, предлагаю заполнить твой профиль. Это поможет нам лучше узнать вас и предлагать персонализированные рекомендации и активности</p>
+                            <p>Жми на кнопку ниже, чтобы начать заполнение 👇</p>
+                        </div>
+                        <!--<p id="next-billing-date">Идет загрузка даты следующего списания...</p>
+                        <p>Чтобы отменить автоматическое продление, перейдите в свой профиль</p>-->
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</body>
 
 <th:block th:fragment="scripts">
     <script th:inline="javascript">
         function checkSubscription() {
-            fetch('/api/subscription')
+            fetch('/api/subscription/current')
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -42,10 +48,22 @@
         }
 
         checkSubscription();
+    </script>
+    <script th:inline="javascript" th:if="${firstRun}">
+        Telegram.WebApp.isClosingConfirmationEnabled = true;
+        Telegram.WebApp.MainButton.text = "Заполнить профиль";
+        Telegram.WebApp.MainButton.hasShineEffect = true;
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            window.location.href = "/profile";
+        });
+        Telegram.WebApp.MainButton.show();
+    </script>
 
+    <script th:inline="javascript" th:if="${!firstRun}">
+        Telegram.WebApp.isClosingConfirmationEnabled = false;
         Telegram.WebApp.MainButton.text = "К сообществу";
         Telegram.WebApp.onEvent('mainButtonClicked', function () {
-            Telegram.WebApp.openTelegramLink('https://t.me/+oSjq-iHU_k5iMGQy');
+            Telegram.WebApp.openTelegramLink([[${@environment.getProperty('app.telegram.societyLink')}]]);
         });
         Telegram.WebApp.MainButton.show();
 
@@ -57,5 +75,4 @@
         Telegram.WebApp.SecondaryButton.show();
     </script>
 </th:block>
-</body>
 </html>

@@ -1,4 +1,4 @@
-package ru.emitrohin.paymentserver.dto;
+package ru.emitrohin.paymentserver.dto.cloudpayments;
 
 import lombok.Getter;
 

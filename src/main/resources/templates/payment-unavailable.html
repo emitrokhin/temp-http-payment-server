@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
 <head>
     <meta charset="UTF-8">
-    <title>Ошибка</title>
+    <title>Оплата недоступна</title>
 </head>
 <body>
 <div class="container mt-2">
     <!-- Форма оплаты -->
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <р>Извините, возникла ошибка</р>
-            <p>Если она повторяется, пожалуйста свяжитесь со <a href="https://t.me/fenomen_mitrohina_assistant">службой заботы</a></p>
+            <h1>Оплата недоступна</h1>
+            <p>Сообщество "Как дома" Юлии Митрохиной открывает свои двери каждый месяц с 1 по 3 число</p>
+            <p>Запишитесь в лист ожидания, чтобы </p>
         </div>
     </div>
 </div>
@@ -28,7 +30,13 @@
         Telegram.WebApp.onEvent('mainButtonClicked', function () {
             window.location.href = "/"
         });
+        //TODO сделать лист ожидания
         Telegram.WebApp.MainButton.show();
+
+        Telegram.WebApp.SecondaryButton.text = "Лист ожидания";
+        Telegram.WebApp.onEvent('secondaryButtonClicked', function () {
+            window.location.href = "/waiting-list"
+        });
         Telegram.WebApp.SecondaryButton.hide();
     </script>
 </th:block>

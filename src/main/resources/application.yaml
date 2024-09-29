@@ -3,9 +3,9 @@ spring:
     name: Payment Server - DEV
 
   datasource:
-    url: jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:5432/postgres
-    username: postgres.bejpczdkansztszqdbvd
-    password: Wecmax-0wenma-vomsej
+    url: jdbc:postgresql://${DB_IP}:5432/postgres
+    username: ${PG_LOGIN}
+    password: ${PG_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   thymeleaf:
@@ -15,7 +15,7 @@ spring:
   jpa:
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
   threads:
     virtual:
@@ -28,20 +28,19 @@ server:
     path: /error
 
 app:
-  publicKey: pk_885fd2d2190460531c2c9a1fc4676
+  cloudpayments:
+    publicKey: ${PK_ID}
+    password: ${PK_PASSWORD}
 
   telegram:
-    botToken: 2200734999:AAEBOJ8hC8Ppoope_R2X-M7dSfl4L_UEfAM
+    botToken: ${BOT_TOKEN}
+    societyId: -5084801418
     authExpirationTime: 300
+    societyLink: https://t.me/+rS92AF6gRrJmYzIy
+    ownerId: 5000568454
 
 logging:
   level:
     org:
       springframework:
         security: DEBUG
-        web:
-          servlet:
-            mvc:
-              method:
-                annotation:
-                  ServletModelAttributeMethodProcessor: DEBUG

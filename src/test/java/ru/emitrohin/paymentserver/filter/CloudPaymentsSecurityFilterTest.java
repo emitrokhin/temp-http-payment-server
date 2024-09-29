@@ -9,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.emitrohin.paymentserver.config.PublicKeyProperty;
+import ru.emitrohin.paymentserver.config.CloudpaymentsProperties;
 import ru.emitrohin.paymentserver.security.CloudpaymentsSecurityFilter;
 
 import static org.mockito.Mockito.*;
@@ -30,7 +30,7 @@ public class CloudPaymentsSecurityFilterTest {
     private FilterChain filterChain;
 
     @Mock
-    private PublicKeyProperty publicKeyProperty;
+    private CloudpaymentsProperties publicKeyProperty;
 
     @InjectMocks
     private CloudpaymentsSecurityFilter filter;

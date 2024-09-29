@@ -6,7 +6,7 @@
     <title>Страница не найдена</title>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container mt-2">
     <!-- Форма оплаты -->
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -24,6 +24,8 @@
         </div>
     </th:block>
 </div>
+</body>
+
 <th:block th:fragment="scripts">
     <th:block th:if="${!@environment.acceptsProfiles('dev')}">
         <script th:inline="javascript">
@@ -32,15 +34,8 @@
                 window.location.href = "/"
             });
             Telegram.WebApp.MainButton.show();
-
-            Telegram.WebApp.SecondaryButton.text = "Вернуться в бот";
-            Telegram.WebApp.SecondaryButton.position = "right";
-            Telegram.WebApp.onEvent('secondaryButtonClicked', function () {
-                Telegram.WebApp.close();
-            });
-            Telegram.WebApp.SecondaryButton.show();
+            Telegram.WebApp.SecondaryButton.hide();
         </script>
     </th:block>
 </th:block>
-</body>
 </html>

@@ -7,15 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "first_run")
 @Getter
 @Setter
-public class FirstRun {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(nullable = false)
-    private Long id;
+public class FirstRun extends BaseEntity {
 
     @Column(name = "telegram_id", nullable = false, unique = true)
     private Long telegramId;

@@ -10,12 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "subscriptions")
-public class Subscription {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(nullable = false)
-    private Long id;
+public class Subscription extends BaseEntity {
 
     @Column(nullable = false)
     private Long telegramId;

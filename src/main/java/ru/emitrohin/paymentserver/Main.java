@@ -6,9 +6,12 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-//TODO flyway migration
+//TODO remove jsessionid
+//TODO implement roles - paid, admin
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
+
+        //TODO on init check bot is connected and cloudpayments is ok
     }
 }

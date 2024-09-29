@@ -4,7 +4,10 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "app")
+@ConfigurationProperties(prefix = "app.cloudpayments")
 @Validated
-public record PublicKeyProperty(@NotNull String publicKey) {
+//TODO move password and pk to env
+public record CloudpaymentsProperties(
+        @NotNull String publicKey,
+        @NotNull String password) {
 }

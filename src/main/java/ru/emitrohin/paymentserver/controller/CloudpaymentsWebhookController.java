@@ -3,10 +3,10 @@ package ru.emitrohin.paymentserver.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.emitrohin.paymentserver.dto.CloudpaymentsPaymentStatusCode;
-import ru.emitrohin.paymentserver.dto.CloudpaymentsRequest;
+import ru.emitrohin.paymentserver.client.TelegramBotService;
+import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsPaymentStatusCode;
+import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
 import ru.emitrohin.paymentserver.model.SubscriptionStatus;
 import ru.emitrohin.paymentserver.service.SubscriptionService;
@@ -14,7 +14,10 @@ import ru.emitrohin.paymentserver.service.TransactionService;
 
 @RestController
 @RequiredArgsConstructor
+//TODO change to api
 public class CloudpaymentsWebhookController {
+
+    private final TelegramBotService telegramBotService;
 
     private final TransactionService transactionService;
 
@@ -31,7 +34,8 @@ public class CloudpaymentsWebhookController {
 
         subscriptionService.createOrUpdateCurrentSubscriptionStatus(request.getAccountId(), SubscriptionStatus.PAID);
 
-        //TODO выслать в бот уведомление с кнопкой
+        //TODO пользователь может запретить писать себе
+        telegramBotService.sendMessageWithButtons("Твоя подписка успешно оплачена! 🎉", request.getAccountId());
 
         return CloudpaymentsPaymentStatusCode.OK;
     }
