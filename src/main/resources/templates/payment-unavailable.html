@@ -13,12 +13,6 @@
             <h1>Оплата недоступна</h1>
             <p>Сообщество "Как дома" Юлии Митрохиной открывает свои двери каждый месяц с 1 по 3 число</p>
             <p>А пока предалгаю тебе записаться в лист ожидания - это позволит тебе в числе первых получить ссылку на оплату</p>
-            <p class="mb-0">
-                <button class="btn btn-sm btn-primary"
-                        onclick="Telegram.WebApp.openTelegramLink('https://t.me/fenomen_mitrohina_bot?start=jYlb7wo5xzKD23m2xGNaN')">
-                    Повторить
-                </button>
-            </p>
         </div>
     </div>
 </div>
@@ -32,17 +26,12 @@
             Telegram.WebApp.BackButton.hide();
         });
 
-        Telegram.WebApp.MainButton.text = "На главную";
+        Telegram.WebApp.MainButton.text = "Записаться в лист ожидания";
         Telegram.WebApp.onEvent('mainButtonClicked', function () {
-            window.location.href = "/"
+            Telegram.WebApp.openTelegramLink('https://t.me/fenomen_mitrohina_bot?start=jYlb7wo5xzKD23m2xGNaN')
         });
-        //TODO сделать лист ожидания
         Telegram.WebApp.MainButton.show();
 
-        Telegram.WebApp.SecondaryButton.text = "Лист ожидания";
-        Telegram.WebApp.onEvent('secondaryButtonClicked', function () {
-            window.location.href = "/waiting-list"
-        });
         Telegram.WebApp.SecondaryButton.hide();
     </script>
 </th:block>
