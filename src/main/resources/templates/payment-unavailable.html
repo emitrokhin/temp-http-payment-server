@@ -12,7 +12,7 @@
         <div class="col-md-6">
             <h1>Оплата недоступна</h1>
             <p>Сообщество "Как дома" Юлии Митрохиной открывает свои двери каждый месяц с 1 по 3 число</p>
-            <p>А пока предалгаю тебе записаться в лист ожидания - это позволит тебе в числе первых получить ссылку на оплату</p>
+            <p>А пока предлагаю тебе записаться в лист ожидания - это позволит тебе в числе первых получить ссылку на оплату</p>
         </div>
     </div>
 </div>
@@ -25,10 +25,11 @@
             history.back();
             Telegram.WebApp.BackButton.hide();
         });
-
+        //TODO close view
         Telegram.WebApp.MainButton.text = "Записаться в лист ожидания";
         Telegram.WebApp.onEvent('mainButtonClicked', function () {
             Telegram.WebApp.openTelegramLink('https://t.me/fenomen_mitrohina_bot?start=jYlb7wo5xzKD23m2xGNaN')
+            Telegram.WebApp.close()
         });
         Telegram.WebApp.MainButton.show();
 

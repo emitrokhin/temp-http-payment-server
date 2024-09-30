@@ -14,7 +14,7 @@
             <h2>₽2990 в месяц</h2>
             <div class="card">
                 <div class="card-body">
-                    <form th:action="@{/pay}" th:object="${profilePaymentForm}" method="post" id="profilePaymentForm" novalidate>
+                    <form th:action="@{/pay}" th:object="${profilePaymentForm}" method="post" id="profilePaymentForm" class="needs-validation" novalidate>
                         <!-- Поле 'Имя' -->
                         <div class="mb-3">
                             <label for="firstName" class="form-label">Имя:</label>
@@ -32,17 +32,17 @@
                         <!-- Поле 'Телефон' -->
                         <div class="mb-3">
                             <label for="phone" class="form-label">Телефон:</label>
-                            <input type="text" class="form-control" id="phone" placeholder="+_ (___) ___-__-__" th:field="*{phone}" required minlength="10" maxlength="15">
+                            <input type="tel" class="form-control" id="phone" placeholder="+79990001122" th:field="*{phone}" required pattern="[+]{1}[0-9]{11,14}">
                             <div class="form-text">
-                                Никакого спама и рекламы. Обещаем!
+                                Никакого спама и рекламы. Обещаю!
                             </div>
-                            <div class="invalid-feedback">Введите корректный номер телефона.</div>
+                            <div class="invalid-feedback">Введите корректный номер телефона. Начинается с + (например, +7 для РФ)</div>
                         </div>
 
                         <!-- Поле 'Email' -->
                         <div class="mb-3">
                             <label for="email" class="form-label">Email:</label>
-                            <input type="email" class="form-control" id="email" placeholder="example@mail.com"  th:field="*{email}" required maxlength="100">
+                            <input type="email" class="form-control" id="email" placeholder="example@mail.com"  th:field="*{email}" required maxlength="100" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" />
                             <div class="invalid-feedback">Введите корректный email. Используйте только латинские буквы.</div>
                         </div>
 
@@ -75,67 +75,29 @@
     <script th:inline="javascript">
         //TODO исправить валидацию
         $(document).ready(function () {
+            'use strict';
 
-            // Маска для международного номера телефона
-            var maskBehavior = function(val) {
-                return val.replace(/\D/g, '').length > 11 ?
-                    '+00 (000) 000-0000' : '+0 (000) 000-00-000';
-            };
+            // Получаем все формы с классом .needs-validation для валидации Bootstrap
+            var forms = document.querySelectorAll('.needs-validation');
 
-            $('#phone').mask(maskBehavior, {
-                onKeyPress: function(val, e, field, options) {
-                    field.mask(maskBehavior.apply({}, arguments), options);
-                }
-            });
+            // Добавляем событие валидации для всех форм с классом .needs-validation
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    // Проверяем, прошла ли форма стандартную валидацию и валидны ли телефон и email
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
 
-            // Проверка телефона (как минимум 11 цифр)
-            function validatePhone(phone) {
-                const phoneDigits = phone.replace(/\D/g, ''); // Удаляем все символы кроме цифр
-                return phoneDigits.length >= 11; // Минимум 11 цифр
-            }
-
-            // Проверка email
-            function validateEmail(email) {
-                // Более строгая проверка email с доменом второго уровня
-                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                return emailPattern.test(email);
-            }
-
-            // Обработка формы
-            $('#profilePaymentForm').on('submit', function(event) {
-                var form = this;
-                var phone = $('#phone').val();
-                var email = $('#email').val();
-                var phoneValid = validatePhone(phone);
-                var emailValid = validateEmail(email);
-
-                // Проверяем, валидна ли форма и дополнительные поля
-                if (!form.checkValidity() || !phoneValid || !emailValid) {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    // Добавляем классы валидации для телефона
-                    if (!phoneValid) {
-                        $('#phone').addClass('is-invalid').removeClass('is-valid');
+                        // Добавляем класс для отображения валидации Bootstrap
+                        form.classList.add('was-validated');
                     } else {
-                        $('#phone').addClass('is-valid').removeClass('is-invalid');
+                        // Очищаем телефон от маски (оставляем только цифры) перед отправкой формы
+                        var cleanPhone = phone.replace(/\D/g, '');
+                        $('#phone').val(cleanPhone);
+                        form.classList.add('was-validated');
+                        form.submit();
                     }
-
-                    // Добавляем классы валидации для email
-                    if (!emailValid) {
-                        $('#email').addClass('is-invalid').removeClass('is-valid');
-                    } else {
-                        $('#email').addClass('is-valid').removeClass('is-invalid');
-                    }
-                } else {
-                    // Очищаем телефон от маски (оставляем только цифры) перед отправкой формы
-                    var cleanPhone = phone.replace(/\D/g, '');
-                    $('#phone').val(cleanPhone);
-                    Telegram.WebApp.MainButton.showProgress()
-                    form.submit();
-                    // Добавляем класс для отображения стилей валидации
-                    form.classList.add('was-validated');
-                }
+                }, false);
             });
         });
     </script>
