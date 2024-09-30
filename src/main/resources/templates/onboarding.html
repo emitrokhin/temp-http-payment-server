@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: template (~{::head}, ~{::body}, ~{::scripts})}">
+<head>
+    <title>Первый запуск</title>
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+    <script async custom-element="amp-story" src="https://cdn.ampproject.org/v0/amp-story-1.0.js"></script>
+    <style amp-custom>
+        .background-layer {
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+
+<amp-story standalone
+           title="Сообщество Как дома">
+
+    <!-- Slide 1: Static Image -->
+    <amp-story-page id="page1" auto-advance-after="video1">
+        <amp-story-grid-layer template="responsive" class="background-layer">
+            <amp-video id="video1"
+                       autoplay
+                       width="886"
+                       height="1920"
+                       layout="fill"
+                       poster="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-start.png"
+                       src="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-start.mp4">
+            </amp-video>
+        </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Slide 2: Static Image -->
+    <amp-story-page id="page2" auto-advance-after="video2">
+        <amp-story-grid-layer template="responsive" class="background-layer">
+            <amp-video id="video2"
+                       autoplay
+                       width="886"
+                       height="1920"
+                       layout="fill"
+                       poster="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-bot.png"
+                       src="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-bot.mp4">
+            </amp-video>
+        </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Slide 3: Static Image -->
+    <amp-story-page id="page3" auto-advance-after="video3">
+        <amp-story-grid-layer template="responsive" class="background-layer">
+            <amp-video id="video3"
+                       autoplay
+                       width="886"
+                       height="1920"
+                       layout="fill"
+                       poster="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-notification.png"
+                       src="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-notification.mp4">
+            </amp-video>
+        </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Slide 4: Video -->
+    <amp-story-page id="page4" auto-advance-after="video4">
+        <amp-story-grid-layer template="responsive" class="background-layer">
+            <amp-video id="video4"
+                       autoplay
+                       width="886"
+                       height="1920"
+                       layout="fill"
+                       poster="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-society.png"
+                       src="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-society.mp4">
+            </amp-video>
+        </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Slide 5: Video -->
+    <amp-story-page id="page5" auto-advance-after="video5">
+        <amp-story-grid-layer template="responsive" class="background-layer">
+            <amp-video id="video5"
+                       autoplay
+                       width="886"
+                       height="1920"
+                       layout="fill"
+                       poster="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-support.png"
+                       src="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-support.mp4">
+            </amp-video>
+        </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Slide 6: Video -->
+    <amp-story-page id="page6" auto-advance-after="video6">
+        <amp-story-grid-layer template="responsive" class="background-layer">
+            <amp-video id="video6"
+                       autoplay
+                       width="886"
+                       height="1920"
+                       layout="fill"
+                       poster="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-folder.png"
+                       src="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-folder.mp4">
+            </amp-video>
+        </amp-story-grid-layer>
+    </amp-story-page>
+
+
+    <!-- Slide 7: Video -->
+    <amp-story-page id="page7" auto-advance-after="video7">
+        <amp-story-grid-layer template="responsive" class="background-layer">
+            <amp-video id="video7"
+                       autoplay
+                       width="886"
+                       height="1920"
+                       layout="fill"
+                       poster="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-final.png"
+                       src="https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/onboarding-final.mp4">
+            </amp-video>
+        </amp-story-grid-layer>
+    </amp-story-page>
+</amp-story>
+
+</body>
+<th:block th:fragment="scripts">
+    <th:block th:fragment="scripts">
+        <script th:inline="javascript">
+            Telegram.WebApp.setHeaderColor("#000000")
+            Telegram.WebApp.setBackgroundColor("#000000")
+            Telegram.WebApp.setBottomBarColor("#000000")
+
+            Telegram.WebApp.MainButton.text = "Завершить обучение";
+            Telegram.WebApp.onEvent('mainButtonClicked', function () {
+                window.location.href = "/onboarding?step=last-step"
+            });
+            Telegram.WebApp.MainButton.show();
+            Telegram.WebApp.SecondaryButton.hide();
+        </script>
+    </th:block>
+</th:block>
+</html>

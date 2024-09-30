@@ -133,7 +133,7 @@
              if (isFormChanged()) {
                  checkFormValidity()
                  saveData()
-                 window.location.href = "/first-run"
+                 window.location.href = "/onboarding"
              } else {
                  let params = {}
                  params.title = "Вы заполнили не все данные в профиле. 😞"
@@ -148,7 +148,7 @@
                  }]
                  Telegram.WebApp.showPopup(params, function (id) {
                      if (id === "skip") {
-                         window.location.href = "/first-run"
+                         window.location.href = "/onboarding"
                      }
                  })
              }
@@ -156,29 +156,30 @@
         Telegram.WebApp.MainButton.show();
     </script>
     <script th:inline="javascript" th:if="${!firstRun}">
-        Telegram.WebApp.isClosingConfirmationEnabled = false;
 
         Telegram.WebApp.BackButton.onClick(function () {
             window.location.href = "/"
         })
 
-        Telegram.WebApp.BackButton.show();
-        Telegram.WebApp.MainButton.hide();
-        Telegram.WebApp.SecondaryButton.hide();
-
         form.addEventListener('input', function() {
             if (isFormChanged()) {
+                Telegram.WebApp.isClosingConfirmationEnabled = true;
                 Telegram.WebApp.MainButton.setText("Сохранить изменения");
                 Telegram.WebApp.MainButton.show();
             } else {
+                Telegram.WebApp.isClosingConfirmationEnabled = false;
                 Telegram.WebApp.MainButton.hide();
             }
         });
 
-        Telegram.WebApp.MainButton.onClick('mainButtonClicked', function () {
+        Telegram.WebApp.MainButton.onClick(function () {
             checkFormValidity()
             saveData()
         });
+
+        Telegram.WebApp.BackButton.show();
+        Telegram.WebApp.MainButton.hide();
+        Telegram.WebApp.SecondaryButton.hide();
     </script>
 </th:block>
 

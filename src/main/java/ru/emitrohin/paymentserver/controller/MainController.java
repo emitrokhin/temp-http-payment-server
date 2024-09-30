@@ -59,21 +59,22 @@ public class MainController {
         return "subscribe";
     }
 
-    @GetMapping("/first-run")
-    public String firstRun(@PathParam("step") String step, Model model) {
-
+    @GetMapping("/onboarding")
+    public String firstRun(@PathParam("step") String step) {
         var telegramId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
-        if (firstRunService.findFirstRun(telegramId).isPresent()) {
-            return "redirect:/";
-        }
 
         if (!StringUtils.hasLength(step)) {
-            return "first-run";
+            return "onboarding";
         } else if (step.equals("last-step")) {
-            return "first-run-last-step";
+            if (firstRunService.findFirstRun(telegramId).isEmpty()) {
+                firstRunService.completeFirstRun(telegramId);
+                return "onboarding-last-step";
+            } else {
+                return "redirect:/success";
+            }
         }
 
-        return "first-run";
+        return "onboarding";
     }
 
     @GetMapping("/unavailable")

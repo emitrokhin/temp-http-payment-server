@@ -18,14 +18,27 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="alert alert-info" role="alert">
+                <h6 class="alert-heading">Нужен повтор обучения?</h6>
+                <small>Жми на кнопку ниже, чтобы посмотреть снова</small>
+                <hr>
+                <p class="mb-0">
+                    <button class="btn btn-sm btn-outline-primary"
+                            onclick="window.location.href = '/onboarding'">
+                        Повторить
+                    </button>
+                </p>
+            </div>
+        </div>
         <div class="col-md-6 mt-3">
             <div class="alert alert-warning" role="alert">
-                <h4 class="alert-heading">Правила сообщества</h4>
+                <h6 class="alert-heading">Правила сообщества</h6>
                 <small>Присоединяясь к моему сообществу, ты соглашаешься соблюдать простые и понятные правила, такие же как и в обычной жизни.</small>
                 <small>Давай вместе создавать комфортную атмосферу для всех участников!</small>
                 <hr>
                 <p class="mb-0">
-                    <button class="btn btn-outline-secondary"
+                    <button class="btn btn-sm btn-outline-secondary"
                             onclick="Telegram.WebApp.openLink('https://mitrohinayulya.ru/society-rules', { try_instant_view: true })">
                         Ознакомиться с правилами
                     </button>
@@ -34,15 +47,14 @@
         </div>
         <div class="col-md-6">
             <div class="alert alert-info" role="alert">
-                <h4 class="alert-heading">Возникли вопросы?</h4>
-                <small>Если возникают затруднения, то смелее пиши моему заботливому ассистенту👩‍💼</small>
-                <small>Обязательно сохрани его себе в контакты</small>
-                <small>Ассистент никогда не пишет первым</small>
+                <h6 class="alert-heading">Возникли вопросы?</h6>
+                <small>Если возникают затруднения, то смелее пиши моей службе заботы👩‍💼</small>
+                <small>Обязательно сохрани себе в контакты</small>
                 <hr>
                 <p class="mb-0">
-                    <button class="btn btn-outline-primary"
+                    <button class="btn btn-sm btn-outline-primary"
                             onclick="Telegram.WebApp.openTelegramLink('https://t.me/fenomen_mitrohina_assistant'); return false;">
-                        Написать ассистенту
+                        Написать в службу заботы
                     </button>
                 </p>
             </div>
@@ -53,29 +65,10 @@
 
 <th:block th:fragment="scripts">
     <script th:inline="javascript">
-        function finishFirstRun() {
-            fetch('/api/first-run/complete', {
-                method: 'POST'
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        toastMessage.textContent = '❌Ошибка при сохранении данных: ' + JSON.stringify(response.body);
-                        toast.show();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastMessage.textContent = '❌ Ошибка при сохранении данных: ' + error;
-                    toast.show();
-                });
-        }
-        
         Telegram.WebApp.MainButton.text = "Перейти в сообщество";
         Telegram.WebApp.MainButton.hasShineEffect = true;
         Telegram.WebApp.onEvent('mainButtonClicked', function () {
-            finishFirstRun()
             Telegram.WebApp.openTelegramLink([[${@environment.getProperty('app.telegram.societyLink')}]]);
-            window.location.href = "/"
         });
         Telegram.WebApp.MainButton.show();
         Telegram.WebApp.SecondaryButton.hide();
