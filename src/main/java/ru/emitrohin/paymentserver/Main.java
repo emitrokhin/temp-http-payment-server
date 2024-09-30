@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 //TODO remove jsessionid
 //TODO implement roles - paid, admin
+//TODO remove all unnecessary comments in html
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);

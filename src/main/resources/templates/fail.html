@@ -26,8 +26,9 @@
     <script th:inline="javascript">
         Telegram.WebApp.isClosingConfirmationEnabled = false
         Telegram.WebApp.MainButton.text = "Повторить попытку";
+        Telegram.WebApp.MainButton.text = "Повторить попытку";
         Telegram.WebApp.onEvent('mainButtonClicked', function () {
-            window.location.href = "/"
+            window.location.href = "/subscribe"
         });
         Telegram.WebApp.MainButton.show();
 

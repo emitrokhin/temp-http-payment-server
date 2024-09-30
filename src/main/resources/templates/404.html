@@ -13,29 +13,17 @@
             <p>Извините, страница не найдена.</p>
         </div>
     </div>
-
-    <th:block th:if="${@environment.acceptsProfiles('dev')}">
-        <div class="fixed-bottom bg-light p-3">
-            <div class="container">
-                <a href="/" class="btn btn-primary w-100 mt-2">
-                    На главную страницу
-                </a>
-            </div>
-        </div>
-    </th:block>
 </div>
 </body>
 
 <th:block th:fragment="scripts">
-    <th:block th:if="${!@environment.acceptsProfiles('dev')}">
-        <script th:inline="javascript">
-            Telegram.WebApp.MainButton.text = "На главную";
-            Telegram.WebApp.onEvent('mainButtonClicked', function () {
-                window.location.href = "/"
-            });
-            Telegram.WebApp.MainButton.show();
-            Telegram.WebApp.SecondaryButton.hide();
-        </script>
-    </th:block>
+    <script th:inline="javascript">
+        Telegram.WebApp.MainButton.text = "На главную";
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            window.location.href = "/"
+        });
+        Telegram.WebApp.MainButton.show();
+        Telegram.WebApp.SecondaryButton.hide();
+    </script>
 </th:block>
 </html>

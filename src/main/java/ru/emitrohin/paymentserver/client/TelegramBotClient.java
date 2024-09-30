@@ -7,17 +7,17 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import ru.emitrohin.paymentserver.config.TelegramProperties;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @EnableConfigurationProperties(TelegramProperties.class)
-public class TelegramBotService {
+public class TelegramBotClient {
 
     private final TelegramProperties telegramProperties;
 

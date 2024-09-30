@@ -58,7 +58,7 @@ public class TelegramAuthenticationService {
     private final Clock clock;
 
     // telegram id is used as unique name
-    public UserDetails authenticateTelegramUser(String initData) throws NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public UserDetails authenticateTelegramUser(String initData) {
 
         try {
             var queryParams = parseInitData(initData);

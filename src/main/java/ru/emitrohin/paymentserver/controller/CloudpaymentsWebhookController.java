@@ -2,9 +2,9 @@ package ru.emitrohin.paymentserver.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import ru.emitrohin.paymentserver.client.TelegramBotService;
+import ru.emitrohin.paymentserver.client.BotMotherClient;
+import ru.emitrohin.paymentserver.client.TelegramBotClient;
 import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsPaymentStatusCode;
 import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
@@ -15,9 +15,12 @@ import ru.emitrohin.paymentserver.service.TransactionService;
 @RestController
 @RequiredArgsConstructor
 //TODO change to api
+//TODO client retries and error handling
 public class CloudpaymentsWebhookController {
 
-    private final TelegramBotService telegramBotService;
+    private final TelegramBotClient telegramBotClient;
+
+    private final BotMotherClient botMotherClient;
 
     private final TransactionService transactionService;
 
@@ -26,7 +29,6 @@ public class CloudpaymentsWebhookController {
     private final TransactionMapper mapper;
 
     //TODO check webhook повторный платеж и проверка accountId
-
     @PostMapping( "/cloudpayments/success")
     public CloudpaymentsPaymentStatusCode successWebhook(@Valid CloudpaymentsRequest request) {
         var entity = mapper.createFromRequest(request);
@@ -35,7 +37,9 @@ public class CloudpaymentsWebhookController {
         subscriptionService.createOrUpdateCurrentSubscriptionStatus(request.getAccountId(), SubscriptionStatus.PAID);
 
         //TODO пользователь может запретить писать себе
-        telegramBotService.sendMessageWithButtons("Твоя подписка успешно оплачена! 🎉", request.getAccountId());
+        telegramBotClient.sendMessageWithButtons("Твоя подписка успешно оплачена! 🎉\n\nВот ссылки для твоего удобства \uD83D\uDC47", request.getAccountId());
+
+        botMotherClient.sendPayload(request.getAccountId());
 
         return CloudpaymentsPaymentStatusCode.OK;
     }

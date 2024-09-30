@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Payment Server - 0.3.1 - PROD
+    name: Payment Server - 0.3 - PROD
 
   datasource:
     url: jdbc:postgresql://${DB_IP}:5432/${DB_NAME}
