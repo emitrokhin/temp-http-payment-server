@@ -40,7 +40,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'self' https://web.telegram.org"))
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
                 .authenticationProvider(provider)
                 .addFilterBefore(filter, AnonymousAuthenticationFilter.class)
