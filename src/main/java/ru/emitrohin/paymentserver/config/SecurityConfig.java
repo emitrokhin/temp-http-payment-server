@@ -39,9 +39,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, TelegramPreAuthenticatedProcessingFilter filter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("frame-ancestors 'self' https://web.telegram.org")
-                        )
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'self' https://web.telegram.org"))
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
                 .authenticationProvider(provider)
                 .addFilterBefore(filter, AnonymousAuthenticationFilter.class)
