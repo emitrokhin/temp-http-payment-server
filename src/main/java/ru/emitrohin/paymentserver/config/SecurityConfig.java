@@ -10,6 +10,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
@@ -36,7 +37,8 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http, TelegramPreAuthenticatedProcessingFilter filter) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)  //TODO enable CSRF
+        http.csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authenticationProvider(provider)
                 .addFilterBefore(filter, AnonymousAuthenticationFilter.class)
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
