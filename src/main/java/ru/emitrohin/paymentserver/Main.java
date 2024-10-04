@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 //TODO remove all unnecessary comments in html
 //TODO send log to ??
 //TODO reinvent auth
+//TODO fix migration transactionId was unique
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
