@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Payment Server - DEV
+    name: Payment Server - TEST
 
   datasource:
     url: jdbc:h2:file:~/test
@@ -8,11 +8,13 @@ spring:
     password:
     driverClassName: org.h2.Driver
 
-
   jpa:
     generate-ddl: true
     hibernate:
       ddl-auto: create-drop
+
+  flyway:
+    enabled: false
 
 server:
   servlet:
@@ -21,8 +23,13 @@ server:
     path: /error
 
 app:
-  publicKey: pk_885fd2d2190460531c2c9a1fc4676
+  cloudpayments:
+    publicKey: pk_885fd2d2190460531c2c9a1fc4676
+    password: pass
 
   telegram:
     botToken: 2200734999:AAEBOJ8hC8Ppoope_R2X-M7dSfl4L_UEfAM
+    societyId: -5084801418
     authExpirationTime: 300
+    societyLink: https://t.me/+rS92AF6gRrJmYzIy
+    ownerId: 5000568454

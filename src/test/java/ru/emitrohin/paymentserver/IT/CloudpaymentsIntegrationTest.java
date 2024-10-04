@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 //TODO тест корявый, он не проверяет как Servet мапит модель
@@ -62,7 +63,8 @@ class CloudpaymentsIntegrationTest {
                         .header("Content-HMAC", CONTENT_HMAC)
                         // Добавляем доверенный IP-адрес
                         .header("X-Forwarded-For", VALID_IP))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
 
         // Проверяем, что транзакция была сохранена
         var transaction = transactionRepository.findByTransactionId(TRANSACTION_ID);
