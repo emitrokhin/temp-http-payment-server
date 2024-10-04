@@ -34,6 +34,12 @@ public class MainController {
 
     @GetMapping("/")
     public String index() {
+        var telegramId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        if (subscriptionService.hasPaidSubscription(telegramId)) {
+            return "redirect:/success";
+        };
+
         return "index";
     }
 
@@ -41,14 +47,14 @@ public class MainController {
     public String subscribe(Model model) {
         var telegramId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
 
-        if (properties.ownerId() != telegramId && !canPayForSubscription()) {
-            return "redirect:/payment-unavailable";
-        }
-
         // проверка или создание подписки
         if (subscriptionService.hasPaidSubscription(telegramId)) {
             return "redirect:/success";
         };
+
+        if (properties.ownerId() != telegramId && !canPayForSubscription()) {
+            return "redirect:/payment-unavailable";
+        }
 
         var profilePaymentForm = profileService.findByTelegramId(telegramId)
                 .map(mapper::createPaymentResponse)
