@@ -26,7 +26,8 @@ public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
 
     private static final Set<String> TRUSTED_SUBNETS = Set.of(
             "91.142.84.0/27", "87.251.91.160/27", "162.55.174.97/32",
-            "194.39.64.130/32", "92.63.206.131/32", "185.98.81.0/28"
+            "194.39.64.130/32", "92.63.206.131/32", "185.98.81.0/28",
+            "46.46.175.96/27", "46.46.168.160/27"
     );
 
     private final CloudpaymentsProperties publicKeyProperty;

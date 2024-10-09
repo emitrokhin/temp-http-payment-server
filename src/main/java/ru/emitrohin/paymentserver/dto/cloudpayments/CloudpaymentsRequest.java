@@ -26,7 +26,7 @@ public class CloudpaymentsRequest {
 
         private String InvoiceId;          // Номер заказа
 
-        private Long AccountId;            // Идентификатор пользователя
+        private String AccountId;          // Идентификатор пользователя
 
         private String SubscriptionId;     // Идентификатор подписки
 

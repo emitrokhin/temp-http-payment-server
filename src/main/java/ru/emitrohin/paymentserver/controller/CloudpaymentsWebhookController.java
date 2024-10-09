@@ -39,15 +39,19 @@ public class CloudpaymentsWebhookController {
     //TODO check webhook повторный платеж и проверка accountId
     @PostMapping( "/cloudpayments/success")
     public ResponseEntity<Map<String, Integer>> successWebhook(@Valid CloudpaymentsRequest request) {
-        var entity = mapper.createFromRequest(request);
-        transactionService.save(entity);
 
-        subscriptionService.createOrUpdateCurrentSubscriptionStatus(request.getAccountId(), SubscriptionStatus.PAID);
-
-        //TODO пользователь может запретить писать себе
-        telegramBotClient.sendMessageWithButtons("Твоя подписка успешно оплачена! 🎉\n\nВот ссылки для твоего удобства \uD83D\uDC47", request.getAccountId());
-
-        botMotherClient.sendPayload(request.getAccountId());
+        //todo это временное решение, должно работать в связке с check уведомлением
+        try {
+            var telegramId = Long.parseLong(request.getAccountId());
+            var entity = mapper.createFromRequest(request);
+            transactionService.save(entity);
+            subscriptionService.createOrUpdateCurrentSubscriptionStatus(telegramId, SubscriptionStatus.PAID);
+            //TODO пользователь может запретить писать себе
+            telegramBotClient.sendMessageWithButtons("Твоя подписка успешно оплачена! 🎉\n\nВот ссылки для твоего удобства \uD83D\uDC47", telegramId);
+            botMotherClient.sendPayload(telegramId);
+        } catch (NumberFormatException e) {
+            logger.warn("AccountId {} should be numeric", request.getAccountId());
+        }
 
         var response = new HashMap<String, Integer>();
         response.put("code", 0);
