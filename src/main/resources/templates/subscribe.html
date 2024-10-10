@@ -32,7 +32,7 @@
                         <!-- Поле 'Телефон' -->
                         <div class="mb-3">
                             <label for="phone" class="form-label">Телефон:</label>
-                            <input type="tel" class="form-control" id="phone" placeholder="+79990001122" th:field="*{phone}" required pattern="[+]{1}[0-9]{11,14}">
+                            <input type="tel" class="form-control" id="phone" placeholder="+79990001122" th:field="*{phone}" required pattern="^\+[1-9]{1}[0-9]{3,14}$">
                             <div class="form-text">
                                 Никакого спама и рекламы. Обещаю!
                             </div>
@@ -42,7 +42,7 @@
                         <!-- Поле 'Email' -->
                         <div class="mb-3">
                             <label for="email" class="form-label">Email:</label>
-                            <input type="email" class="form-control" id="email" placeholder="example@mail.com"  th:field="*{email}" required maxlength="100" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" />
+                            <input type="email" class="form-control" id="email" placeholder="example@mail.com"  th:field="*{email}" required maxlength="100" pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" />
                             <div class="invalid-feedback">Введите корректный email. Используйте только латинские буквы.</div>
                         </div>
 
