@@ -24,10 +24,10 @@
             font-size: 14px;
         }
 
-        .transaction-item .transaction-type {
-            color: #777;
-            font-size: 12px;
-        }
+        /*.transaction-item .transaction-type {*/
+        /*    color: #777;*/
+        /*    font-size: 12px;*/
+        /*}*/
 
         .transaction-item .right-section {
             text-align: right;
@@ -52,7 +52,7 @@
 
 <body>
 <div class="container mt-2">
-    <div class="accordion accordion-flush" id="accordionFlushExample">
+    <div class="accordion" id="accordionExample">
         <div class="accordion-item">
             <h1 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseProfile" aria-expanded="false" aria-controls="flush-collapseProfile">
@@ -151,18 +151,31 @@
         }
 
         // Функция для загрузки транзакций
+        // Функция для загрузки транзакций
         function loadTransactions() {
-            fetch(`/transactions`)
-                .then(response => response.json())
+            fetch(`/transactions`)  // telegramId должен быть передан сюда
+                .then(response => {
+                    // Отладка: проверить статус ответа
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     const transactionList = document.getElementById('transactionList');
                     transactionList.innerHTML = ''; // Очищаем список перед добавлением
 
-                    data.forEach(transaction => {
-                        const transactionItem = `
+                    // Отладка: вывести полученные данные
+                    console.log('Данные транзакций:', data);
+
+                    if (data.length === 0) {
+                        // Если транзакции отсутствуют, выводим сообщение
+                        transactionList.innerHTML = '<div class="text-center">Транзакции отсутствуют</div>';
+                    } else {
+                        data.forEach(transaction => {
+                            const transactionItem = `
                         <div class="transaction-item mb-2">
                             <div class="left-section">
-                                <div class="transaction-title">${transaction.firstName} ${transaction.lastName}</div>
                                 <div class="transaction-type">Подписка</div>
                             </div>
                             <div class="right-section">
@@ -171,11 +184,17 @@
                             </div>
                         </div>
                     `;
-                        transactionList.innerHTML += transactionItem;
-                    });
+                            transactionList.innerHTML += transactionItem;
+                        });
+                    }
                 })
-                .catch(error => console.error('Ошибка загрузки транзакций:', error));
+                .catch(error => {
+                    console.error('Ошибка загрузки транзакций:', error);
+                    const transactionList = document.getElementById('transactionList');
+                    transactionList.innerHTML = '<div class="text-center" style="font-weight: bold; color: red;">Ошибка загрузки транзакций.</div>';
+                });
         }
+
 
         document.addEventListener('DOMContentLoaded', function () {
             loadTransactions();  // Вызываем функцию загрузки при загрузке страницы
