@@ -4,62 +4,128 @@
 <head>
     <title>Профиль</title>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .transaction-item .left-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .transaction-item .transaction-title {
+            /*font-weight: bold;*/
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .transaction-item .transaction-type {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .transaction-item .right-section {
+            text-align: right;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .transaction-item .amount {
+            /*font-weight: bold;*/
+            color: #000;
+        }
+
+        .transaction-item .date-time {
+            color: #777;
+            font-size: 12px;
+        }
+    </style>
+
 </head>
+
 <body>
 <div class="container mt-2">
-    <h1>Профиль</h1>
-    <div class="card">
-        <div class="card-body">
-            <form th:action="@{/api/profile/update}" method="post" id="profileForm">
-                <!-- Имя -->
-                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
-                    <label for="firstName">Имя</label>
-                    <input type="text" id="firstName" name="firstName" class="form-control"
-                           th:value="${profileForm.firstName}" required>
-                </div>
+    <div class="accordion accordion-flush" id="accordionFlushExample">
+        <div class="accordion-item">
+            <h1 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseProfile" aria-expanded="false" aria-controls="flush-collapseProfile">
+                    Профиль
+                </button>
+            </h1>
+            <div id="flush-collapseProfile" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="@{/api/profile/update}" method="post" id="profileForm">
+                            <!-- Имя -->
+                            <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                                <label for="firstName">Имя</label>
+                                <input type="text" id="firstName" name="firstName" class="form-control"
+                                       th:value="${profileForm.firstName}" required>
+                            </div>
 
-                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
-                    <label for="lastName">Фамилия</label>
-                    <input type="text" id="lastName" name="lastName" class="form-control"
-                           th:value="${profileForm.lastName}" required>
-                </div>
+                            <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                                <label for="lastName">Фамилия</label>
+                                <input type="text" id="lastName" name="lastName" class="form-control"
+                                       th:value="${profileForm.lastName}" required>
+                            </div>
 
-                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
-                    <label for="phone">Телефон</label>
-                    <input type="tel" id="phone" name="phone" class="form-control"
-                           th:value="${profileForm.phone}" required
-                           pattern="^\+?[0-9]{10,15}$" title="Введите корректный номер телефона">
-                </div>
+                            <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                                <label for="phone">Телефон</label>
+                                <input type="tel" id="phone" name="phone" class="form-control"
+                                       th:value="${profileForm.phone}" required
+                                       pattern="^\+?[0-9]{10,15}$" title="Введите корректный номер телефона">
+                            </div>
 
-                <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
-                    <label for="email">Электронная почта</label>
-                    <input type="email" id="email" name="email" class="form-control"
-                           th:value="${profileForm.email}" required>
-                </div>
+                            <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
+                                <label for="email">Электронная почта</label>
+                                <input type="email" id="email" name="email" class="form-control"
+                                       th:value="${profileForm.email}" required>
+                            </div>
 
-                <div class="mb-3">
-                    <label for="dateOfBirth">Дата рождения</label>
-                    <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control"
-                           th:value="${profileForm.dateOfBirth != null ? #temporals.format(profileForm.dateOfBirth, 'yyyy-MM-dd') : ''}">
-                    <div class="form-text">
-                        Очень хочу поздравить с днем рождения 🌸
+                            <div class="mb-3">
+                                <label for="dateOfBirth">Дата рождения</label>
+                                <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control"
+                                       th:value="${profileForm.dateOfBirth != null ? #temporals.format(profileForm.dateOfBirth, 'yyyy-MM-dd') : ''}">
+                                <div class="form-text">
+                                    Очень хочу поздравить с днем рождения 🌸
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="city">Город</label>
+                                <input type="text" id="city" name="city" class="form-control"
+                                       th:value="${profileForm.city}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="profession">Профессия</label>
+                                <input type="text" id="profession" name="profession" class="form-control"
+                                       th:value="${profileForm.profession}">
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-                <div class="mb-3">
-                    <label for="city">Город</label>
-                    <input type="text" id="city" name="city" class="form-control"
-                           th:value="${profileForm.city}">
-                </div>
-
-                <div class="mb-3">
-                    <label for="profession">Профессия</label>
-                    <input type="text" id="profession" name="profession" class="form-control"
-                           th:value="${profileForm.profession}">
-                </div>
-            </form>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h1 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTransactions" aria-expanded="false" aria-controls="flush-collapseTransactions">
+                    Транзакции
+                </button>
+            </h1>
+            <div id="flush-collapseTransactions" class="accordion-collapse collapse" data-bs-parent="#accordionFlushTransaction">
+                <div class="transaction-list" id="transactionList"></div>
+            </div>
         </div>
     </div>
+
 </div>
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -70,6 +136,52 @@
 </div>
 </body>
 <th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        // Функция для форматирования даты и времени
+        function formatDateTime(dateTimeStr) {
+            const dateTime = new Date(dateTimeStr);
+            const today = new Date();
+
+            if (dateTime.toDateString() === today.toDateString()) {
+                return `${dateTime.getHours()}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
+            } else {
+                const options = { day: 'numeric', month: 'short' };
+                return dateTime.toLocaleDateString('ru-RU', options);
+            }
+        }
+
+        // Функция для загрузки транзакций
+        function loadTransactions() {
+            fetch(`/transactions`)
+                .then(response => response.json())
+                .then(data => {
+                    const transactionList = document.getElementById('transactionList');
+                    transactionList.innerHTML = ''; // Очищаем список перед добавлением
+
+                    data.forEach(transaction => {
+                        const transactionItem = `
+                        <div class="transaction-item mb-2">
+                            <div class="left-section">
+                                <div class="transaction-title">${transaction.firstName} ${transaction.lastName}</div>
+                                <div class="transaction-type">Подписка</div>
+                            </div>
+                            <div class="right-section">
+                                <div class="amount">${transaction.amount} ${transaction.currency}</div>
+                                <div class="date-time">${formatDateTime(transaction.dateTime)}</div>
+                            </div>
+                        </div>
+                    `;
+                        transactionList.innerHTML += transactionItem;
+                    });
+                })
+                .catch(error => console.error('Ошибка загрузки транзакций:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTransactions();  // Вызываем функцию загрузки при загрузке страницы
+        });
+    </script>
+
     <script th:inline="javascript">
         const form = document.getElementById('profileForm');
         let initialFormDataString = JSON.stringify(Object.fromEntries(new FormData(form).entries()));
