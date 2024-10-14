@@ -30,8 +30,6 @@ public class TransactionController {
 
         return transactions.stream().map(transaction -> {
             TransactionDTO dto = new TransactionDTO();
-            dto.setFirstName(profile.get().getFirstName());
-            dto.setLastName(profile.get().getLastName());
             dto.setAmount(transaction.getAmount());
             dto.setDateTime(transaction.getDateTime());
             dto.setCurrency(transaction.getCurrency());

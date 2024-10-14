@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class TransactionDTO {
-    private String firstName;
-    private String lastName;
     private BigDecimal amount;
     private LocalDateTime dateTime;
     private String currency;
