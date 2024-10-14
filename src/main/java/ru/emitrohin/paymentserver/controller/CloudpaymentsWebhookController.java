@@ -59,12 +59,14 @@ public class CloudpaymentsWebhookController {
     }
 
     @PostMapping( "/cloudpayments/fail")
-    public CloudpaymentsPaymentStatusCode failWebhook(@Valid CloudpaymentsRequest request) {
+    public ResponseEntity<Map<String, Integer>> failWebhook(@Valid CloudpaymentsRequest request) {
         var entity = mapper.createFromRequest(request);
         transactionService.save(entity);
 
         //TODO выслать в бот уведомление с кнопкой
 
-        return CloudpaymentsPaymentStatusCode.OK;
+        var response = new HashMap<String, Integer>();
+        response.put("code", 0);
+        return ResponseEntity.ok(response);
     }
 }
