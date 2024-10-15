@@ -6,31 +6,50 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
+import ru.emitrohin.paymentserver.dto.TransactionDTO;
+import ru.emitrohin.paymentserver.model.Transaction;
 import ru.emitrohin.paymentserver.service.FirstRunService;
 import ru.emitrohin.paymentserver.service.ProfileService;
+import ru.emitrohin.paymentserver.service.TransactionService;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
 public class ProfileController {
 
     private final ProfileService profileService;
-
     private final FirstRunService firstRunService;
-
     private final ProfileMapper profileMapper;
+    private final TransactionService transactionService;
 
     @GetMapping("/profile")
     public String getUser(Model model) {
         var telegramId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
-        //TODO что делать, если не найдено? На платеж вести?
+
+        // Получение данных профиля
         var profileForm = profileService.findByTelegramId(telegramId);
         if (profileForm.isEmpty()) {
             return "redirect:/";
         }
 
+        // Получение списка транзакций
+        List<Transaction> transactions = transactionService.getAllTransactions(telegramId);
+        List<TransactionDTO> transactionDTOs = transactions.stream().map(transaction -> {
+            TransactionDTO dto = new TransactionDTO();
+            dto.setAmount(transaction.getAmount());
+            dto.setDateTime(transaction.getDateTime());
+            dto.setCurrency(transaction.getCurrency());
+            return dto;
+        }).collect(Collectors.toList());
+
+        // Передача данных в модель
         var firstRunEntry = firstRunService.findFirstRun(telegramId);
         model.addAttribute("firstRun", firstRunEntry.isEmpty());
         model.addAttribute("profileForm", profileMapper.createUpdateResponse(profileForm.get()));
+        model.addAttribute("transactions", transactionDTOs);
+
         return "profile";
     }
 }

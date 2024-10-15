@@ -32,7 +32,6 @@
         }
 
         .transaction-item .amount {
-            /*font-weight: bold;*/
             color: #000;
         }
 
@@ -109,7 +108,20 @@
             <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                 <div class="accordion-body">
                     <div class="transaction-list" id="transactionList">
-                        <!-- Сюда будут загружаться транзакции через JS -->
+                        <th:block th:if="${transactions.isEmpty()}">
+                            <div class="text-center">Транзакции отсутствуют</div>
+                        </th:block>
+                        <th:block th:each="transaction : ${transactions}">
+                            <div class="transaction-item mb-2">
+                                <div class="left-section">
+                                    <div class="transaction-type">Подписка</div>
+                                </div>
+                                <div class="right-section">
+                                    <div class="amount" th:text="${transaction.amount} + ' ' + ${transaction.currency}"></div>
+                                    <div class="date-time" th:text="${#temporals.format(transaction.dateTime, 'dd MMM yyyy')}"></div>
+                                </div>
+                            </div>
+                        </th:block>
                     </div>
                 </div>
             </div>
@@ -127,66 +139,6 @@
 </div>
 </body>
 <th:block th:fragment="scripts">
-    <script th:inline="javascript">
-        // Функция для форматирования даты и времени
-        function formatDateTime(dateTimeStr) {
-            const dateTime = new Date(dateTimeStr);
-            const today = new Date();
-
-            if (dateTime.toDateString() === today.toDateString()) {
-                return `${dateTime.getHours()}:${dateTime.getMinutes().toString().padStart(2, '0')}`;
-            } else {
-                const options = { day: 'numeric', month: 'short' };
-                return dateTime.toLocaleDateString('ru-RU', options);
-            }
-        }
-
-        // Функция для загрузки транзакций
-        function loadTransactions() {
-            fetch(`/transactions`)  // telegramId должен быть передан сюда
-                .then(response => {
-                    // Отладка: проверить статус ответа
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const transactionList = document.getElementById('transactionList');
-                    transactionList.innerHTML = ''; // Очищаем список перед добавлением
-
-                    // Отладка: вывести полученные данные
-                    console.log('Данные транзакций:', data);
-
-                    if (data.length === 0) {
-                        // Если транзакции отсутствуют, выводим сообщение
-                        transactionList.innerHTML = '<div class="text-center">Транзакции отсутствуют</div>';
-                    } else {
-                        data.forEach(transaction => {
-                            const transactionItem = `
-                        <div class="transaction-item mb-2">
-                            <div class="left-section">
-                                <div class="transaction-type">Подписка</div>
-                            </div>
-                            <div class="right-section">
-                                <div class="amount">${transaction.amount} ${transaction.currency}</div>
-                                <div class="date-time">${formatDateTime(transaction.dateTime)}</div>
-                            </div>
-                        </div>
-                    `;
-                            transactionList.innerHTML += transactionItem;
-                        });
-                    }
-                })
-                .catch(error => console.error('Ошибка загрузки транзакций:', error));
-        }
-
-
-        document.addEventListener('DOMContentLoaded', function () {
-            loadTransactions();  // Вызываем функцию загрузки при загрузке страницы
-        });
-    </script>
-
     <script th:inline="javascript">
         const form = document.getElementById('profileForm');
         let initialFormDataString = JSON.stringify(Object.fromEntries(new FormData(form).entries()));
