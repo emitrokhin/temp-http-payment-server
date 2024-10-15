@@ -6,8 +6,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
-import ru.emitrohin.paymentserver.dto.TransactionDTO;
-import ru.emitrohin.paymentserver.model.Transaction;
+import ru.emitrohin.paymentserver.dto.TransactionResponse;
+import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
 import ru.emitrohin.paymentserver.service.FirstRunService;
 import ru.emitrohin.paymentserver.service.ProfileService;
 import ru.emitrohin.paymentserver.service.TransactionService;
@@ -23,6 +23,7 @@ public class ProfileController {
     private final FirstRunService firstRunService;
     private final ProfileMapper profileMapper;
     private final TransactionService transactionService;
+    private final TransactionMapper transactionMapper;
 
     @GetMapping("/profile")
     public String getUser(Model model) {
@@ -34,15 +35,11 @@ public class ProfileController {
             return "redirect:/";
         }
 
-        // Получение списка транзакций
-        List<Transaction> transactions = transactionService.getAllTransactions(telegramId);
-        List<TransactionDTO> transactionDTOs = transactions.stream().map(transaction -> {
-            TransactionDTO dto = new TransactionDTO();
-            dto.setAmount(transaction.getAmount());
-            dto.setDateTime(transaction.getDateTime());
-            dto.setCurrency(transaction.getCurrency());
-            return dto;
-        }).collect(Collectors.toList());
+        // Получение списка транзакций и маппинг с использованием TransactionMapper
+        var transactionDTOs = transactionService.getAllTransactions(telegramId)
+                .stream()
+                .map(transactionMapper::toTransactionResponse)
+                .collect(Collectors.toList());
 
         // Передача данных в модель
         var firstRunEntry = firstRunService.findFirstRun(telegramId);
