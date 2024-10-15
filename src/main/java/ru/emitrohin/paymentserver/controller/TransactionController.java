@@ -19,13 +19,11 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    private final ProfileService profileService;
 
     @GetMapping("/transactions")
     @ResponseBody
     public List<TransactionDTO> getAllTransactions() {
         var telegramId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
-        var profile = profileService.findByTelegramId(telegramId);
         List<Transaction> transactions = transactionService.getAllTransactions(telegramId);
 
         return transactions.stream().map(transaction -> {
