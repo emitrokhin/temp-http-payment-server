@@ -31,12 +31,12 @@ import java.util.Locale;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
+import static java.util.Optional.empty;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -107,7 +107,7 @@ public class ProfileControllerTest {
         when(transactionService.getAllTransactions(anyLong())).thenReturn(List.of(TEST_TRANSACTION1, TEST_TRANSACTION2));
         when(transactionMapper.toTransactionResponse(TEST_TRANSACTION1)).thenReturn(new TransactionResponse(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION1.getCurrency()));
         when(transactionMapper.toTransactionResponse(TEST_TRANSACTION2)).thenReturn(new TransactionResponse(TEST_TRANSACTION2.getAmount(), TEST_TRANSACTION2.getDateTime(), TEST_TRANSACTION2.getCurrency()));
-        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(empty());
         when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
         // Выполнение запроса
@@ -143,7 +143,7 @@ public class ProfileControllerTest {
         // Настройка мока
         when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PROFILE));
         when(transactionService.getAllTransactions(anyLong())).thenReturn(emptyList()); // Имитация отсутствия транзакций
-        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(empty());
         when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
         // Выполнение запроса
@@ -182,8 +182,14 @@ public class ProfileControllerTest {
                 .andExpect(view().name("profile"))
                 .andExpect(model().attributeExists("firstRun")) // Проверяем наличие флага первого запуска
                 .andExpect(model().attributeExists("profileForm"))
-                .andExpect(model().attributeExists("transactions"))
-                .andExpect(model().attribute("transactions", empty())); // Проверяем, что транзакций нет
+                .andExpect(model().attributeExists("transactions")); // Проверяем наличие атрибута "transactions"
+
+// Получаем атрибут "transactions" из модели
+        List<?> transactions = (List<?>) result.andReturn().getModelAndView().getModel().get("transactions");
+
+// Проверяем, что это пустой список
+        assertThat(transactions).isNotNull(); // Убедитесь, что он не null
+        assertThat(transactions).isEmpty(); // Проверяем, что список пустой
 
         // Получаем DTO профиля из результата
         var profileForm = result.andReturn().getModelAndView().getModel().get("profileForm");
@@ -224,7 +230,7 @@ public class ProfileControllerTest {
         SecurityContextHolder.setContext(securityContext);
 
         // Мокируем, что профиль не найден
-        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(empty());
 
         // Выполняем GET-запрос и проверяем редирект
         var result = mockMvc.perform(get("/profile"))
@@ -247,7 +253,7 @@ public class ProfileControllerTest {
         when(transactionService.getAllTransactions(anyLong())).thenReturn(List.of(TEST_TRANSACTION1, TEST_TRANSACTION2));
         when(transactionMapper.toTransactionResponse(TEST_TRANSACTION1)).thenReturn(new TransactionResponse(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION1.getCurrency()));
         when(transactionMapper.toTransactionResponse(TEST_TRANSACTION2)).thenReturn(new TransactionResponse(TEST_TRANSACTION2.getAmount(), TEST_TRANSACTION2.getDateTime(), TEST_TRANSACTION2.getCurrency()));
-        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(empty());
         when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
         // Выполнение запроса
