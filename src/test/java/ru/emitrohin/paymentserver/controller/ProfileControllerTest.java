@@ -99,6 +99,18 @@ public class ProfileControllerTest {
         return transaction;
     }
 
+    private ProfileUpdateDTO createLimitedProfileDTO() {
+        return new ProfileUpdateDTO(
+                "Pavel",
+                "Zaytsev",
+                "+1234567890",
+                "pavel@zaytsev.com",
+                null,  // Дата рождения не передается
+                null,  // Город не передается
+                null   // Профессия не передается
+        );
+    }
+
     @Test
     @WithMockUser(username = "1234567890")
     void getUser_ProfileExists_ShouldReturnProfilePageWithTransactions() throws Exception {
@@ -185,7 +197,7 @@ public class ProfileControllerTest {
                 .andExpect(model().attributeExists("transactions")); // Проверяем наличие атрибута "transactions"
 
 // Получаем атрибут "transactions" из модели
-        List<?> transactions = (List<?>) result.andReturn().getModelAndView().getModel().get("transactions");
+        var transactions = (List<?>) result.andReturn().getModelAndView().getModel().get("transactions");
 
 // Проверяем, что это пустой список
         assertThat(transactions).isNotNull(); // Убедитесь, что он не null
@@ -205,18 +217,6 @@ public class ProfileControllerTest {
         assertThat(dto.dateOfBirth()).isNull(); // Дата рождения не передается
         assertThat(dto.city()).isNull(); // Город не передается
         assertThat(dto.profession()).isNull(); // Профессия не передается
-    }
-
-    private ProfileUpdateDTO createLimitedProfileDTO() {
-        return new ProfileUpdateDTO(
-                "Pavel",
-                "Zaytsev",
-                "+1234567890",
-                "pavel@zaytsev.com",
-                null,  // Дата рождения не передается
-                null,  // Город не передается
-                null   // Профессия не передается
-        );
     }
 
     @Test
@@ -268,16 +268,24 @@ public class ProfileControllerTest {
         // Получение HTML-контента
         var content = result.getResponse().getContentAsString();
 
-        // Форматирование дат транзакций
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
+        // Проверка полей профиля
+        assertThat(content).contains("Имя", TEST_PROFILE.getFirstName());
+        assertThat(content).contains("Фамилия", TEST_PROFILE.getLastName());
+        assertThat(content).contains("Телефон", TEST_PROFILE.getPhone());
+        assertThat(content).contains("Электронная почта", TEST_PROFILE.getEmail());
+        assertThat(content).contains("Дата рождения", TEST_PROFILE.getDateOfBirth().toString());
+        assertThat(content).contains("Город", TEST_PROFILE.getCity());
+        assertThat(content).contains("Профессия", TEST_PROFILE.getProfession());
 
+        // Форматирование дат транзакций
+//        var formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
+        var formatterDate = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
+        var formatterTime = DateTimeFormatter.ofPattern("HH:mm");
         // Проверка содержимого
         assertThat(content).contains("Подписка");
         assertThat(content).contains(TEST_TRANSACTION1.getAmount().toString() + " " + TEST_TRANSACTION1.getCurrency());
-        assertThat(content).contains(TEST_TRANSACTION1.getDateTime().format(formatter)); // Используем formatter
+        assertThat(content).contains(TEST_TRANSACTION1.getDateTime().format(formatterTime)); // Используем formatter
         assertThat(content).contains(TEST_TRANSACTION2.getAmount().toString() + " " + TEST_TRANSACTION2.getCurrency());
-        assertThat(content).contains(TEST_TRANSACTION2.getDateTime().format(formatter)); // Используем formatter
+        assertThat(content).contains(TEST_TRANSACTION2.getDateTime().format(formatterDate)); // Используем formatter
     }
-
-
 }
