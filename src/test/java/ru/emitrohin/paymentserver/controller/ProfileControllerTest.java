@@ -25,11 +25,11 @@ import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -103,32 +103,30 @@ public class ProfileControllerTest {
         when(profileMapper.createUpdateResponse(profile)).thenReturn(profileDTO);
 
         // Выполнение запроса
-        mockMvc.perform(get("/profile"))
+        var result = mockMvc.perform(get("/profile"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile"))
                 .andExpect(model().attributeExists("firstRun"))
                 .andExpect(model().attributeExists("profileForm"))
                 .andExpect(model().attributeExists("transactions"))
-                .andExpect(model().attribute("transactions", List.of(
-                        new TransactionResponse(transaction1.getAmount(), transaction1.getDateTime(), transaction1.getCurrency()),
-                        new TransactionResponse(transaction2.getAmount(), transaction2.getDateTime(), transaction2.getCurrency())
-                )))
-                .andExpect(model().attribute("transactions", hasItem(
-                        allOf(
-                                hasToString(containsString("100")),
-                                hasToString(containsString(transaction1.getDateTime().toString())),
-                                hasToString(containsString("RUB"))
-                        )
-                )))
+                .andReturn();
 
-                .andExpect(model().attribute("transactions", hasItem(
-                        allOf(
-                                hasToString(containsString("200")),
-                                hasToString(containsString(transaction2.getDateTime().toString())),
-                                hasToString(containsString("RUB"))
-                        )
-                )))
-        ;
+        // Получение списка транзакций из результата
+        var transactions = (List<TransactionResponse>) result.getModelAndView().getModel().get("transactions");
+
+        // Проверка списка транзакций с использованием AssertJ
+        assertThat(transactions)
+                .hasSize(2)
+                .extracting(TransactionResponse::amount)
+                .containsExactlyInAnyOrder(BigDecimal.valueOf(100), BigDecimal.valueOf(200));
+
+        assertThat(transactions)
+                .extracting(TransactionResponse::dateTime)
+                .containsExactlyInAnyOrder(transaction1.getDateTime(), transaction2.getDateTime());
+
+        assertThat(transactions)
+                .extracting(TransactionResponse::currency)
+                .containsExactlyInAnyOrder("RUB", "RUB");
     }
 
     @Test
@@ -162,15 +160,22 @@ public class ProfileControllerTest {
         when(profileMapper.createUpdateResponse(profile)).thenReturn(profileDTO);
 
         // Выполнение запроса
-        mockMvc.perform(get("/profile"))
+        var result = mockMvc.perform(get("/profile"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile"))
                 .andExpect(model().attributeExists("firstRun"))
                 .andExpect(model().attributeExists("profileForm"))
                 .andExpect(model().attributeExists("transactions"))
-                .andExpect(model().attribute("transactions", empty())); // Проверяем, что транзакций нет
-    }
+                .andReturn();
 
+        // Получение списка транзакций из результата
+        var transactions = (List<TransactionResponse>) result.getModelAndView().getModel().get("transactions");
+
+        // Проверка списка транзакций с использованием AssertJ
+        assertThat(transactions)
+                .isNotNull()
+                .isEmpty(); // Проверяем, что список транзакций пустой
+    }
 
     @Test
     @WithMockUser(username = "1234567890")
@@ -207,22 +212,28 @@ public class ProfileControllerTest {
         when(profileMapper.createUpdateResponse(profile)).thenReturn(limitedProfileDTO); // Возвращаем DTO с ограниченными полями
 
         // Выполнение запроса
-        mockMvc.perform(get("/profile"))
+        var result = mockMvc.perform(get("/profile"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile"))
                 .andExpect(model().attributeExists("firstRun")) // Проверяем наличие флага первого запуска
                 .andExpect(model().attributeExists("profileForm"))
-                .andExpect(model().attribute("profileForm", allOf(
-                        hasToString(containsString("Pavel")),
-                        hasToString(containsString("Zaytsev")),
-                        hasToString(containsString("+1234567890")),
-                        hasToString(containsString("pavel@zaytsev.com")),
-                        hasToString(containsString(nullValue().toString())), // Дата рождения не передается
-                        hasToString(containsString(nullValue().toString())), // Город не передается
-                        hasToString(containsString(nullValue().toString())) // Профессия не передается
-                )))
                 .andExpect(model().attributeExists("transactions"))
                 .andExpect(model().attribute("transactions", empty())); // Проверяем, что транзакций нет
+
+        // Получаем DTO профиля из результата
+        var profileForm = result.andReturn().getModelAndView().getModel().get("profileForm");
+
+        // Проверяем поля профиля с помощью AssertJ
+        assertThat(profileForm).isInstanceOf(ProfileUpdateDTO.class);
+        var dto = (ProfileUpdateDTO) profileForm;
+
+        assertThat(dto)
+                .extracting(ProfileUpdateDTO::firstName, ProfileUpdateDTO::lastName, ProfileUpdateDTO::phone, ProfileUpdateDTO::email)
+                .containsExactly("Pavel", "Zaytsev", "+1234567890", "pavel@zaytsev.com");
+
+        assertThat(dto.dateOfBirth()).isNull(); // Дата рождения не передается
+        assertThat(dto.city()).isNull(); // Город не передается
+        assertThat(dto.profession()).isNull(); // Профессия не передается
     }
 
     @Test
@@ -232,15 +243,22 @@ public class ProfileControllerTest {
         var authentication = Mockito.mock(Authentication.class);
         var securityContext = Mockito.mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("1234567890"); // Пример Telegram ID
+        when(authentication.getName()).thenReturn("1234567890");
         SecurityContextHolder.setContext(securityContext);
 
         // Мокируем, что профиль не найден
         when(profileService.findByTelegramId(1234567890L)).thenReturn(Optional.empty());
 
         // Выполняем GET-запрос и проверяем редирект
-        mockMvc.perform(get("/profile"))
+        var result = mockMvc.perform(get("/profile"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/"))
+                .andReturn();
+
+        // Проверяем ModelAndView
+        var modelAndView = result.getModelAndView();
+        assertThat(modelAndView).isNotNull();
+        assertThat(modelAndView.getViewName()).isEqualTo("redirect:/");
+        assertThat(modelAndView.getModel()).isEmpty();
     }
 }
