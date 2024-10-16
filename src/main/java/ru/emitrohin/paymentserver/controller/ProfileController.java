@@ -32,10 +32,11 @@ public class ProfileController {
             return "redirect:/";
         }
 
-        // Получение списка транзакций и маппинг с использованием TransactionMapper
+        // Получение списка транзакций, маппинг и сортировка по дате от самой свежей к самой старой
         var transactions = transactionService.getAllTransactions(telegramId)
                 .stream()
                 .map(transactionMapper::toTransactionResponse)
+                .sorted((t1, t2) -> t2.dateTime().compareTo(t1.dateTime())) // Сортировка от новой к старой
                 .toList();
 
         // Передача данных в модель
@@ -46,4 +47,5 @@ public class ProfileController {
 
         return "profile";
     }
+
 }

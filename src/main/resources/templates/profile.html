@@ -118,13 +118,26 @@
                                 </div>
                                 <div class="right-section">
                                     <div class="amount" th:text="${transaction.amount} + ' ' + ${transaction.currency}"></div>
-                                    <div class="date-time" th:text="${#temporals.format(transaction.dateTime, 'dd MMM yyyy')}"></div>
+
+                                    <!-- Проверка: если дата транзакции совпадает с сегодняшней датой -->
+                                    <div class="date-time"
+                                         th:if="${#temporals.format(transaction.dateTime, 'yyyy-MM-dd')} == ${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                                         th:text="${#temporals.format(transaction.dateTime, 'HH:mm')}">
+                                    </div>
+
+                                    <!-- Иначе отображаем дату -->
+                                    <div class="date-time"
+                                         th:unless="${#temporals.format(transaction.dateTime, 'yyyy-MM-dd')} == ${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                                         th:text="${#temporals.format(transaction.dateTime, 'dd MMM yyyy')}">
+                                    </div>
                                 </div>
                             </div>
                         </th:block>
                     </div>
                 </div>
             </div>
+
+
         </div>
     </div>
 
