@@ -25,7 +25,9 @@ import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
@@ -35,7 +37,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
-
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -59,12 +60,15 @@ public class ProfileControllerTest {
     @MockBean
     private TransactionMapper transactionMapper;
 
-    @Test
-    @WithMockUser(username = "1234567890")
-    void getUser_ProfileExists_ShouldReturnProfilePageWithTransactions() throws Exception {
-        // Создаем тестовые объекты профиля
+    private static final Long TELEGRAM_ID = 1234567890L;
+    private static final Profile TEST_PROFILE = createTestProfile();
+    private static final ProfileUpdateDTO TEST_PROFILE_DTO = createProfileUpdateDTO();
+    private static final Transaction TEST_TRANSACTION1 = createTestTransaction(BigDecimal.valueOf(100), LocalDateTime.now(), "RUB");
+    private static final Transaction TEST_TRANSACTION2 = createTestTransaction(BigDecimal.valueOf(200), LocalDateTime.now().minusDays(1), "RUB");
+
+    private static Profile createTestProfile() {
         var profile = new Profile();
-        profile.setTelegramId(1234567890L);
+        profile.setTelegramId(TELEGRAM_ID);
         profile.setFirstName("Pavel");
         profile.setLastName("Zaytsev");
         profile.setPhone("+1234567890");
@@ -72,35 +76,39 @@ public class ProfileControllerTest {
         profile.setDateOfBirth(LocalDate.of(2004, 4, 20));
         profile.setCity("Samara");
         profile.setProfession("Developer");
+        return profile;
+    }
 
-        // Создаем DTO для профиля
-        var profileDTO = new ProfileUpdateDTO(
+    private static ProfileUpdateDTO createProfileUpdateDTO() {
+        return new ProfileUpdateDTO(
                 "Pavel",
                 "Zaytsev",
                 "+1234567890",
                 "pavel@zaytsev.com",
                 LocalDate.of(2004, 4, 20),
                 "Samara",
-                "Developer");
+                "Developer"
+        );
+    }
 
-        // Создаем тестовые транзакции
-        var transaction1 = new Transaction();
-        transaction1.setAmount(new BigDecimal("100"));
-        transaction1.setDateTime(LocalDateTime.now());
-        transaction1.setCurrency("RUB");
+    private static Transaction createTestTransaction(BigDecimal amount, LocalDateTime dateTime, String currency) {
+        var transaction = new Transaction();
+        transaction.setAmount(amount);
+        transaction.setDateTime(dateTime);
+        transaction.setCurrency(currency);
+        return transaction;
+    }
 
-        var transaction2 = new Transaction();
-        transaction2.setAmount(new BigDecimal("200"));
-        transaction2.setDateTime(LocalDateTime.now().minusDays(1));
-        transaction2.setCurrency("RUB");
-
+    @Test
+    @WithMockUser(username = "1234567890")
+    void getUser_ProfileExists_ShouldReturnProfilePageWithTransactions() throws Exception {
         // Настройка мока
-        when(profileService.findByTelegramId(1234567890L)).thenReturn(Optional.of(profile));
-        when(transactionService.getAllTransactions(anyLong())).thenReturn(List.of(transaction1, transaction2));
-        when(transactionMapper.toTransactionResponse(transaction1)).thenReturn(new TransactionResponse(transaction1.getAmount(), transaction1.getDateTime(), transaction1.getCurrency()));
-        when(transactionMapper.toTransactionResponse(transaction2)).thenReturn(new TransactionResponse(transaction2.getAmount(), transaction2.getDateTime(), transaction2.getCurrency()));
-        when(firstRunService.findFirstRun(1234567890L)).thenReturn(Optional.empty());
-        when(profileMapper.createUpdateResponse(profile)).thenReturn(profileDTO);
+        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PROFILE));
+        when(transactionService.getAllTransactions(anyLong())).thenReturn(List.of(TEST_TRANSACTION1, TEST_TRANSACTION2));
+        when(transactionMapper.toTransactionResponse(TEST_TRANSACTION1)).thenReturn(new TransactionResponse(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION1.getCurrency()));
+        when(transactionMapper.toTransactionResponse(TEST_TRANSACTION2)).thenReturn(new TransactionResponse(TEST_TRANSACTION2.getAmount(), TEST_TRANSACTION2.getDateTime(), TEST_TRANSACTION2.getCurrency()));
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
         // Выполнение запроса
         var result = mockMvc.perform(get("/profile"))
@@ -118,46 +126,25 @@ public class ProfileControllerTest {
         assertThat(transactions)
                 .hasSize(2)
                 .extracting(TransactionResponse::amount)
-                .containsExactlyInAnyOrder(BigDecimal.valueOf(100), BigDecimal.valueOf(200));
+                .containsExactlyInAnyOrder(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION2.getAmount());
 
         assertThat(transactions)
                 .extracting(TransactionResponse::dateTime)
-                .containsExactlyInAnyOrder(transaction1.getDateTime(), transaction2.getDateTime());
+                .containsExactlyInAnyOrder(TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION2.getDateTime());
 
         assertThat(transactions)
                 .extracting(TransactionResponse::currency)
-                .containsExactlyInAnyOrder("RUB", "RUB");
+                .containsExactlyInAnyOrder(TEST_TRANSACTION1.getCurrency(), TEST_TRANSACTION2.getCurrency());
     }
 
     @Test
     @WithMockUser(username = "1234567890")
     void getUser_ProfileExists_NoTransactions_ShouldReturnEmptyTransactions() throws Exception {
-        // Создаем тестовые объекты профиля
-        var profile = new Profile();
-        profile.setTelegramId(1234567890L);
-        profile.setFirstName("Pavel");
-        profile.setLastName("Zaytsev");
-        profile.setPhone("+1234567890");
-        profile.setEmail("pavel@zaytsev.com");
-        profile.setDateOfBirth(LocalDate.of(2004, 4, 20));
-        profile.setCity("Samara");
-        profile.setProfession("Developer");
-
-        // Создаем DTO для профиля
-        var profileDTO = new ProfileUpdateDTO(
-                "Pavel",
-                "Zaytsev",
-                "+1234567890",
-                "pavel@zaytsev.com",
-                LocalDate.of(2004, 4, 20),
-                "Samara",
-                "Developer");
-
         // Настройка мока
-        when(profileService.findByTelegramId(1234567890L)).thenReturn(Optional.of(profile));
+        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PROFILE));
         when(transactionService.getAllTransactions(anyLong())).thenReturn(emptyList()); // Имитация отсутствия транзакций
-        when(firstRunService.findFirstRun(1234567890L)).thenReturn(Optional.empty());
-        when(profileMapper.createUpdateResponse(profile)).thenReturn(profileDTO);
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
         // Выполнение запроса
         var result = mockMvc.perform(get("/profile"))
@@ -180,36 +167,14 @@ public class ProfileControllerTest {
     @Test
     @WithMockUser(username = "1234567890")
     void getUser_FirstRun_ShouldReturnProfilePageWithLimitedFields() throws Exception {
-        // Создаем тестовые объекты профиля с полным набором данных
-        var profile = new Profile();
-        profile.setTelegramId(1234567890L);
-        profile.setFirstName("Pavel");
-        profile.setLastName("Zaytsev");
-        profile.setPhone("+1234567890");
-        profile.setEmail("pavel@zaytsev.com");
-        profile.setDateOfBirth(LocalDate.of(2004, 4, 20)); // Эти поля должны быть исключены при первом запуске
-        profile.setCity("Samara");
-        profile.setProfession("Developer");
-
-        // Создаем DTO с ограниченным набором полей (имя, фамилия, телефон, почта)
-        var limitedProfileDTO = new ProfileUpdateDTO(
-                "Pavel",
-                "Zaytsev",
-                "+1234567890",
-                "pavel@zaytsev.com",
-                null,  // Дата рождения не передается
-                null,  // Город не передается
-                null   // Профессия не передается
-        );
-
         // Создаем запись первого запуска
         var firstRun = new FirstRun();
-        firstRun.setTelegramId(1234567890L);
+        firstRun.setTelegramId(TELEGRAM_ID);
 
         // Настройка мока
-        when(profileService.findByTelegramId(1234567890L)).thenReturn(Optional.of(profile));
-        when(firstRunService.findFirstRun(1234567890L)).thenReturn(Optional.of(firstRun)); // Симулируем первый запуск
-        when(profileMapper.createUpdateResponse(profile)).thenReturn(limitedProfileDTO); // Возвращаем DTO с ограниченными полями
+        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PROFILE));
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.of(firstRun)); // Симулируем первый запуск
+        when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(createLimitedProfileDTO()); // Возвращаем DTO с ограниченными полями
 
         // Выполнение запроса
         var result = mockMvc.perform(get("/profile"))
@@ -229,11 +194,23 @@ public class ProfileControllerTest {
 
         assertThat(dto)
                 .extracting(ProfileUpdateDTO::firstName, ProfileUpdateDTO::lastName, ProfileUpdateDTO::phone, ProfileUpdateDTO::email)
-                .containsExactly("Pavel", "Zaytsev", "+1234567890", "pavel@zaytsev.com");
+                .containsExactly(TEST_PROFILE.getFirstName(), TEST_PROFILE.getLastName(), TEST_PROFILE.getPhone(), TEST_PROFILE.getEmail());
 
         assertThat(dto.dateOfBirth()).isNull(); // Дата рождения не передается
         assertThat(dto.city()).isNull(); // Город не передается
         assertThat(dto.profession()).isNull(); // Профессия не передается
+    }
+
+    private ProfileUpdateDTO createLimitedProfileDTO() {
+        return new ProfileUpdateDTO(
+                "Pavel",
+                "Zaytsev",
+                "+1234567890",
+                "pavel@zaytsev.com",
+                null,  // Дата рождения не передается
+                null,  // Город не передается
+                null   // Профессия не передается
+        );
     }
 
     @Test
@@ -247,7 +224,7 @@ public class ProfileControllerTest {
         SecurityContextHolder.setContext(securityContext);
 
         // Мокируем, что профиль не найден
-        when(profileService.findByTelegramId(1234567890L)).thenReturn(Optional.empty());
+        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.empty());
 
         // Выполняем GET-запрос и проверяем редирект
         var result = mockMvc.perform(get("/profile"))
@@ -261,4 +238,40 @@ public class ProfileControllerTest {
         assertThat(modelAndView.getViewName()).isEqualTo("redirect:/");
         assertThat(modelAndView.getModel()).isEmpty();
     }
+
+    @Test
+    @WithMockUser(username = "1234567890")
+    void getUser_ProfilePage_ShouldDisplayAllFields() throws Exception {
+        // Настройка мока
+        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PROFILE));
+        when(transactionService.getAllTransactions(anyLong())).thenReturn(List.of(TEST_TRANSACTION1, TEST_TRANSACTION2));
+        when(transactionMapper.toTransactionResponse(TEST_TRANSACTION1)).thenReturn(new TransactionResponse(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION1.getCurrency()));
+        when(transactionMapper.toTransactionResponse(TEST_TRANSACTION2)).thenReturn(new TransactionResponse(TEST_TRANSACTION2.getAmount(), TEST_TRANSACTION2.getDateTime(), TEST_TRANSACTION2.getCurrency()));
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
+
+        // Выполнение запроса
+        var result = mockMvc.perform(get("/profile"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile"))
+                .andExpect(model().attributeExists("firstRun"))
+                .andExpect(model().attributeExists("profileForm"))
+                .andExpect(model().attributeExists("transactions"))
+                .andReturn();
+
+        // Получение HTML-контента
+        var content = result.getResponse().getContentAsString();
+
+        // Форматирование дат транзакций
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
+
+        // Проверка содержимого
+        assertThat(content).contains("Подписка");
+        assertThat(content).contains(TEST_TRANSACTION1.getAmount().toString() + " " + TEST_TRANSACTION1.getCurrency());
+        assertThat(content).contains(TEST_TRANSACTION1.getDateTime().format(formatter)); // Используем formatter
+        assertThat(content).contains(TEST_TRANSACTION2.getAmount().toString() + " " + TEST_TRANSACTION2.getCurrency());
+        assertThat(content).contains(TEST_TRANSACTION2.getDateTime().format(formatter)); // Используем formatter
+    }
+
+
 }
