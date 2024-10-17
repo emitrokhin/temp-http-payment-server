@@ -1,0 +1,40 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <springProperty scope="context" name="bugsnagApiKey" source="app.bugsnag.api-key"/>
+    <springProperty scope="context" name="appVersion" source="app.version"/>
+    <springProperty scope="context" name="bugsnagReleaseStage" source="app.bugsnag.release-stage"/>
+
+    <appender name="BUGSNAG" class="com.bugsnag.BugsnagAppender">
+        <apiKey>${bugsnagApiKey}</apiKey>
+        <releaseStage>${bugsnagReleaseStage}</releaseStage>
+        <appVersion>${appVersion}</appVersion>
+        <!-- TODO оставить только production, staging + test?-->
+        <notifyReleaseStages>production,staging,testing,development</notifyReleaseStages>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="BUGSNAG"/>
+    </root>
+
+    <springProfile name="prod">
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/app.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/app-%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="BUGSNAG"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+</configuration>

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Payment Server - 0.3.1 - DEV
+    name: ${app.name} - ${app.version} - ${app.bugsnag.release-stage}
 
   datasource:
     url: jdbc:postgresql://${DB_IP}:5432/${DB_NAME}
@@ -30,19 +30,20 @@ server:
     path: /error
 
 app:
+  version: "@project.version@"
+  name: "@project.name@"
+
   cloudpayments:
-    publicKey: ${PK_ID}
+    public-key: ${PK_ID}
     password: ${PK_PASSWORD}
 
   telegram:
-    botToken: ${BOT_TOKEN}
-    societyId: -5084801418
-    authExpirationTime: 300
-    societyLink: https://t.me/+rS92AF6gRrJmYzIy
+    bot-token: ${BOT_TOKEN}
+    society-id: -5084801418
+    auth-expiration-time: 300
+    society-link: https://t.me/+rS92AF6gRrJmYzIy
     ownerId: 5000568454
 
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
+  bugsnag:
+    api-key: c732c7f9ec9a0c3c34f170197f40a6b7
+    release-stage: development

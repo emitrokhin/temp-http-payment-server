@@ -1,24 +1,18 @@
 spring:
-  application:
-    name: Payment Server - 0.3.1 - PROD
-
   datasource:
     url: jdbc:postgresql://${DB_IP}:5432/${DB_NAME}
 
 app:
   telegram:
-    societyId: -1002246042299
-    societyLink: https://t.me/+oSjq-iHU_k5iMGQy
+    society-id: -1002246042299
+    society-link: https://t.me/+oSjq-iHU_k5iMGQy
     ownerId: 438139618
+
+  bugsnag:
+    release-stage: production
 
 server:
   error:
     whitelabel:
       enabled: false
     include-stacktrace: never
-
-logging:
-  level:
-    org:
-      springframework:
-        security: WARN
