@@ -1,7 +1,6 @@
 package ru.emitrohin.paymentserver.client;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -19,14 +18,11 @@ import java.util.Map;
 @EnableConfigurationProperties(TelegramProperties.class)
 public class TelegramBotClient {
 
-    private final TelegramProperties telegramProperties;
+    private final TelegramProperties properties;
 
     private final RestTemplate restTemplate;
 
     private final Environment environment;
-
-    @Value("${app.telegram.botToken}")
-    private String botToken;
 
     /**
      * Метод для отправки сообщения с кнопками
@@ -34,7 +30,7 @@ public class TelegramBotClient {
     //TODO проверять что пришло, повторять попытки и т  д
     public void sendMessageWithButtons(String text, long telegramId) {
         var testEnv = !environment.matchesProfiles("prod");
-        var url = String.format("https://api.telegram.org/bot%s/%s/sendPhoto", botToken, testEnv ? "test" : "");
+        var url = String.format("https://api.telegram.org/bot%s/%s/sendPhoto", properties.botToken(), testEnv ? "test" : "");
         var photoUrl = "https://s3.timeweb.cloud/d9448f39-76ed7011-ed95-4f47-a2d5-bc09db949407/success-payment.jpg";
 
         // Создаем кнопки
@@ -42,7 +38,7 @@ public class TelegramBotClient {
         keyboard.put("inline_keyboard",
                 new Object[][] {
                         { createButtonWithUrl("Мой профиль", "https://mitrokhina.ru.tuna.am/profile", true) },
-                        { createButtonWithUrl("Перейти в сообщество", telegramProperties.societyLink(), false) },
+                        { createButtonWithUrl("Перейти в сообщество", properties.societyLink(), false) },
                         { createButtonWithUrl("Написать в поддержку", "https://t.me/fenomen_mitrohina_bot", false) }
         });
 
