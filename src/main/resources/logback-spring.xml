@@ -16,7 +16,6 @@
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="BUGSNAG"/>
     </root>
 
     <springProfile name="prod">
