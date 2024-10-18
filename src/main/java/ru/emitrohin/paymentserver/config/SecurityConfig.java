@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import ru.emitrohin.paymentserver.security.*;
 
 //TODO ChangeSessionIdAuthenticationStrategy : Changed session id from C5BF689A7EECF9FB0EE39C1623FB4D4B ??
