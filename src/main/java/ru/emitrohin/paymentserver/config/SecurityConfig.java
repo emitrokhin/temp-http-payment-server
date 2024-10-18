@@ -35,8 +35,7 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           TelegramPreAuthenticatedProcessingFilter telegramPreAuthenticatedProcessingFilter,
-                                           TelegramIdMDCFilter telegramIdMDCFilter) throws Exception {
+                                           TelegramPreAuthenticatedProcessingFilter telegramPreAuthenticatedProcessingFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'self' https://web.telegram.org"))
@@ -44,7 +43,6 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(provider)
                 .addFilterBefore(telegramPreAuthenticatedProcessingFilter, AnonymousAuthenticationFilter.class)
-                .addFilterAfter(telegramIdMDCFilter, SecurityContextHolderAwareRequestFilter.class)
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/auth",
