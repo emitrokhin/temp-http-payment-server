@@ -24,8 +24,6 @@ public class SecurityConfig {
 
     private final TelegramPreAuthenticatedAuthenticationProvider provider;
 
-    private final CloudpaymentsSecurityFilter cloudPaymentsSecurityFilter;
-
     @Bean
     public FilterRegistrationBean<CloudpaymentsSecurityFilter> jwtAuthenticationFilterRegistration(CloudpaymentsSecurityFilter filter) {
         var registration = new FilterRegistrationBean<>(filter);
@@ -33,17 +31,17 @@ public class SecurityConfig {
         return registration;
     }
 
-
     @Bean
     @Order(2)
-    public SecurityFilterChain filterChain(HttpSecurity http, TelegramPreAuthenticatedProcessingFilter filter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           TelegramPreAuthenticatedProcessingFilter telegramPreAuthenticatedProcessingFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'self' https://web.telegram.org"))
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
                 .authenticationProvider(provider)
-                .addFilterBefore(filter, AnonymousAuthenticationFilter.class)
+                .addFilterBefore(telegramPreAuthenticatedProcessingFilter, AnonymousAuthenticationFilter.class)
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/auth",
@@ -63,7 +61,8 @@ public class SecurityConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain filterCloudpaymentsRequests(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterCloudpaymentsRequests(HttpSecurity http,
+                                                           CloudpaymentsSecurityFilter cloudPaymentsSecurityFilter) throws Exception {
             http.csrf(AbstractHttpConfigurer::disable)
                     .securityMatcher("/cloudpayments/**")
                     .addFilterBefore(cloudPaymentsSecurityFilter, AnonymousAuthenticationFilter.class)
@@ -81,7 +80,7 @@ public class SecurityConfig {
     @Bean
     public TelegramPreAuthenticatedProcessingFilter telegramPreAuthenticatedProcessingFilter(AuthenticationManager authenticationManager) {
         TelegramPreAuthenticatedProcessingFilter filter = new TelegramPreAuthenticatedProcessingFilter();
-        filter.setAuthenticationManager(authenticationManager); // Инжектируем AuthenticationManager через метод
+        filter.setAuthenticationManager(authenticationManager);
         return filter;
     }
 }

@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.emitrohin.paymentserver.client.BotMotherClient;
 import ru.emitrohin.paymentserver.client.TelegramBotClient;
-import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsPaymentStatusCode;
 import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
 import ru.emitrohin.paymentserver.model.SubscriptionStatus;
@@ -50,7 +49,7 @@ public class CloudpaymentsWebhookController {
             telegramBotClient.sendMessageWithButtons("Твоя подписка успешно оплачена! 🎉\n\nВот ссылки для твоего удобства \uD83D\uDC47", telegramId);
             botMotherClient.sendPayload(telegramId);
         } catch (NumberFormatException e) {
-            logger.warn("AccountId {} should be numeric", request.getAccountId());
+            logger.error("AccountId {} should be numeric. Can't save to DB", request.getAccountId());
         }
 
         var response = new HashMap<String, Integer>();

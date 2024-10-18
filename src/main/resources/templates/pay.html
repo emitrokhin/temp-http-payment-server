@@ -87,6 +87,7 @@
                         window.location.href = "/success";
                     },
                     onFail: function (reason, options) {
+                        Bugsnag.notify("Payment failed");
                         window.location.href = "/fail";
                     }
                 }).then(function (widgetResult) {

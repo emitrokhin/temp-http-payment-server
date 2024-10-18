@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,6 +26,8 @@ import java.util.Set;
 @Configuration
 public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(CloudpaymentsSecurityFilter.class);
+
     private static final Set<String> TRUSTED_SUBNETS = Set.of(
             "91.142.84.0/27", "87.251.91.160/27", "162.55.174.97/32",
             "194.39.64.130/32", "92.63.206.131/32", "185.98.81.0/28",
@@ -41,12 +45,14 @@ public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
                     try {
                         return IpUtil.isIpInRange(ipAddress, subnet);
                     } catch (UnknownHostException e) {
+                        logger.error("Access denied. Unknown IP address: {}", ipAddress, e);
                         return false;
                     }
                 });
 
         if (!validIp) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied: Invalid IP address");
+            logger.error("Access denied. Invalid IP address: {}", ipAddress);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied. Invalid IP address");
             return;
         }
 
@@ -55,6 +61,7 @@ public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
         var contentHmac = request.getHeader("Content-HMAC");
 
         if (xContentHmac == null || contentHmac == null) {
+            logger.error("Access denied. Missing HMAC headers");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing HMAC headers");
             return;
         }
@@ -73,6 +80,7 @@ public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
 
         // TODO: проверить HMAC подпись
         // if (!xContentHmac.equals(calculatedHmac)) {
+        //     logger.error("Invalid HMAC signature");
         //     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid HMAC signature");
         //     return;
         // }
@@ -88,6 +96,7 @@ public class CloudpaymentsSecurityFilter extends OncePerRequestFilter {
             var hmacBytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return new String(Base64.getEncoder().encode(hmacBytes), StandardCharsets.UTF_8);
         } catch (Exception e) {
+            logger.error("Failed to calculate HMAC. Reason: {}", e.getMessage());
             throw new ServletException("Failed to calculate HMAC", e);
         }
     }

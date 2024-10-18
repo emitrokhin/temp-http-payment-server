@@ -2,6 +2,8 @@ package ru.emitrohin.paymentserver.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -22,6 +24,8 @@ import ru.emitrohin.paymentserver.service.TelegramUserDataService;
 @EnableConfigurationProperties(CloudpaymentsProperties.class)
 public class PaymentController {
 
+    private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
+
     private final TelegramUserDataService telegramUserDataService;
 
     private final ProfileService profileService;
@@ -40,11 +44,13 @@ public class PaymentController {
         // есть ли такой пользователь?
         var userData = telegramUserDataService.findByTelegramId(telegramId);
         if (userData.isEmpty()) {
+            logger.error("User with id {} not found", telegramId);
             bindingResult.rejectValue("telegramId", "error.personalDataForm", "Пользователь с таким Telegram ID не найден");
             return "redirect:/index";
         } else {
             // есть ли ошибки?
             if (bindingResult.hasErrors()) {
+                logger.error("Binding result has errors {}", bindingResult.getAllErrors());
                 return "redirect:/index";
             }
             // оплачена ли подписка?
