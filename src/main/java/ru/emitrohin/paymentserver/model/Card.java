@@ -28,4 +28,10 @@ public class Card extends BaseEntity {
     private String cardExpDate;        // Срок действия карты в формате MM/YY
 
     private String token;              // Токен карты для повторных платежей без ввода реквизитов
+
+    @Column(nullable = false)
+    private Boolean isActive;
+
+    @Column(nullable = false)
+    private Boolean isPrimary;
 }
