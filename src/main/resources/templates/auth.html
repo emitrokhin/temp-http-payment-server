@@ -1,26 +1,32 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:fragment="template (head, body, scripts)">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+    <script src="//d2wy8f7a9ursnm.cloudfront.net/v8/bugsnag.min.js" defer></script>
 </head>
 <body>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        if (window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+    document.addEventListener('DOMContentLoaded', function() {
+        Bugsnag.start("[[${@environment.getProperty('app.bugsnag.api-key')}]]");
+
+        Telegram.WebApp.ready();
+        if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user && Telegram.WebApp.initDataUnsafe.user.id) {
             /* <![CDATA[ */
+            console.warn(window.Telegram.WebApp.initData);
             var cookieOptions = 'path=/; SameSite=Lax; Max-Age=3600';
 
             document.cookie = `initData=${window.Telegram.WebApp.initData}; ${cookieOptions}`;
             /* ]]> */
             const urlParams = new URLSearchParams(window.location.search);
+            console.log("Переадресация...");
             window.location.href = urlParams.get('redirect') || '/';
-
         } else {
-            window.location.href = '/not-in-telegram';  // Если приложение не в Telegram
+            Bugsnag.notify("Telegram WebApp wasn't initialized");
+            window.location.href = 'https://t.me/fenomen_mitrohina_bot/society';
         }
     });
 </script>

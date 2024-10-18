@@ -87,6 +87,8 @@
                     if (!form.checkValidity()) {
                         event.preventDefault();
                         event.stopPropagation();
+                        console.warn("Form wasn't validated");
+                        Bugsnag.notify("Form wasn't validated");
 
                         // Добавляем класс для отображения валидации Bootstrap
                         form.classList.add('was-validated');

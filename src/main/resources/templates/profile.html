@@ -169,6 +169,7 @@
             // Проверка валидности формы
             if (!form.checkValidity()) {
                 form.reportValidity();
+                Bugsnag.notify('Form is not valid');
                 return;
             }
         }
