@@ -1,0 +1,18 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <appender name="BUGSNAG" class="com.bugsnag.BugsnagAppender">
+        <apiKey>TEST_API_KEY</apiKey>
+        <endpoint>http://localhost:8089</endpoint>
+        <releaseStage>development</releaseStage>
+        <appVersion>0.0</appVersion>
+        <appType>test</appType>
+        <notifyReleaseStages>production,staging,testing,development</notifyReleaseStages>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="BUGSNAG"/>
+    </root>
+</configuration>
