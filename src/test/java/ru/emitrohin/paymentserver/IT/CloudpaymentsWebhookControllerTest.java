@@ -1,4 +1,4 @@
-package ru.emitrohin.paymentserver.controller;
+package ru.emitrohin.paymentserver.IT;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.emitrohin.paymentserver.client.BotMotherClient;
 import ru.emitrohin.paymentserver.client.TelegramBotClient;
+import ru.emitrohin.paymentserver.controller.CloudpaymentsWebhookController;
+import ru.emitrohin.paymentserver.controller.PaymentController;
+import ru.emitrohin.paymentserver.controller.ProfileController;
 import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.dto.mapper.CardMapper;
 import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
