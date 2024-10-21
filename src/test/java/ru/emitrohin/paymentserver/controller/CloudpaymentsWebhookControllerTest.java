@@ -2,22 +2,17 @@ package ru.emitrohin.paymentserver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.emitrohin.paymentserver.client.BotMotherClient;
 import ru.emitrohin.paymentserver.client.TelegramBotClient;
 import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.dto.mapper.CardMapper;
-import ru.emitrohin.paymentserver.dto.mapper.CloudpaymentRequestMapper;
 import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
 import ru.emitrohin.paymentserver.model.Card;
@@ -79,9 +74,6 @@ public class CloudpaymentsWebhookControllerTest {
 
     @MockBean
     private TransactionMapper transactionMapper;
-
-    @MockBean
-    private CloudpaymentRequestMapper cloudpaymentRequestMapper;
 
     @Autowired
     private ObjectMapper objectMapper;
