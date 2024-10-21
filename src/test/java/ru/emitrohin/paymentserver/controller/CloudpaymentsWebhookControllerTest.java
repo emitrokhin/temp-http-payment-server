@@ -163,17 +163,8 @@ public class CloudpaymentsWebhookControllerTest {
 
     @Test
     @WithMockUser(username = "1234567890")
-    void successWebhook_ShouldSaveTransactionAndCardAndSendTelegramMessage() throws Exception {
-        // Мокируем SecurityContext
-        var authentication = Mockito.mock(Authentication.class);
-        var securityContext = Mockito.mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("1234567890");
-
-        SecurityContextHolder.setContext(securityContext);
-
+    void successWebhook_ShouldSaveTransactionAndCardAndSendTelegramMessage() throws Exception {// Мокируем SecurityContext
         var transactionRequest = createTestRequest();
-
 
         // Настройка мока для сервисов
         when(cardService.getCardByCardId(transactionRequest.getCardId())).thenReturn(null);
@@ -204,14 +195,6 @@ public class CloudpaymentsWebhookControllerTest {
     @Test
     @WithMockUser(username = "1234567890")
     void successWebhook_ShouldSaveTransactionAndSendTelegramMessage_WhenCardExists() throws Exception {
-        // Мокируем SecurityContext
-        var authentication = Mockito.mock(Authentication.class);
-        var securityContext = Mockito.mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("1234567890");
-
-        SecurityContextHolder.setContext(securityContext);
-
         var transactionRequest = createTestRequest();
 
         // Настройка мока для сервисов
@@ -244,14 +227,6 @@ public class CloudpaymentsWebhookControllerTest {
     @Test
     @WithMockUser(username = "1234567890")
     void failWebhook_ShouldSaveTransactionAndDeactivateCard_WhenCardExists() throws Exception {
-        // Мокируем SecurityContext
-        var authentication = Mockito.mock(Authentication.class);
-        var securityContext = Mockito.mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("1234567890");
-
-        SecurityContextHolder.setContext(securityContext);
-
         var transactionRequest = createTestRequest();
 
         // Настройка мока для сервисов
@@ -278,14 +253,6 @@ public class CloudpaymentsWebhookControllerTest {
     @Test
     @WithMockUser(username = "1234567890")
     void failWebhook_ShouldSaveTransactionAndNotDeactivateCard_WhenCardDoesNotExist() throws Exception {
-        // Мокируем SecurityContext
-        var authentication = Mockito.mock(Authentication.class);
-        var securityContext = Mockito.mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("1234567890");
-
-        SecurityContextHolder.setContext(securityContext);
-
         var transactionRequest = createTestRequest();
 
         // Настройка мока для сервисов
