@@ -17,6 +17,7 @@ public class CardService {
         return cardRepository.findAllByTelegramId(telegramId);
     }
 
+    @Transactional
     public void setPrimary(long telegramId, String cardId) {
         var cards = cardRepository.findAllByTelegramId(telegramId);
         cards.forEach(card -> card.setIsPrimary(false));
@@ -34,6 +35,7 @@ public class CardService {
         cardRepository.save(card);
     }
 
+    @Transactional
     public void deactivateCard(String cardId) {
         var card = cardRepository.findByCardId(cardId).orElseThrow();
         card.setIsActive(false);
@@ -44,6 +46,7 @@ public class CardService {
         return cardRepository.findByCardId(cardId).orElse(null);
     }
 
+    @Transactional
     public void deactivatePrimaryForAllCards(long telegramId) {
         var cards = cardRepository.findAllByTelegramId(telegramId);
         cards.forEach(card -> {
