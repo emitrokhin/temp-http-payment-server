@@ -57,6 +57,9 @@ public class CloudpaymentsWebhookController {
             if (existingCard == null) {
                 cardService.deactivatePrimaryForAllCards(telegramId);
                 var card = cardMapper.createFromRequest(request);
+                card.setTelegramId(telegramId);
+                card.setIsPrimary(true);
+                card.setIsActive(true);
                 cardService.saveCard(card);
             }
             // Обновление подписки
