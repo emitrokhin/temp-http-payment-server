@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.emitrohin.paymentserver.client.BotMotherClient;
 import ru.emitrohin.paymentserver.client.TelegramBotClient;
 import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
+import ru.emitrohin.paymentserver.dto.mapper.CardMapper;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
 import ru.emitrohin.paymentserver.model.Card;
 import ru.emitrohin.paymentserver.model.SubscriptionStatus;
@@ -36,32 +37,29 @@ public class CloudpaymentsWebhookController {
 
     private final SubscriptionService subscriptionService;
 
-    private final TransactionMapper mapper;
+    private final TransactionMapper transactionMapper;
 
     private final CardService cardService;
+
+    private final CardMapper cardMapper;
 
     //TODO check webhook повторный платеж и проверка accountId
     @PostMapping("/cloudpayments/success")
     public ResponseEntity<Map<String, Integer>> successWebhook(@Valid CloudpaymentsRequest request) {
         try {
             var telegramId = Long.parseLong(request.getAccountId());
-            var entity = mapper.createFromRequest(request);
+            var transaction = transactionMapper.createFromRequest(request);
 
             // Сохранение транзакции
-            transactionService.save(entity);
+            transactionService.save(transaction);
 
             var existingCard = cardService.getCardByCardId(request.getCardId());
             if (existingCard == null) {
                 cardService.deactivatePrimaryForAllCards(telegramId);
-                var card = new Card();
+                var card = cardMapper.createFromRequest(request);
                 card.setTelegramId(telegramId);
-                card.setCardId(request.getCardId());  // Получаем и устанавливаем cardId из запроса
-                card.setCardType(request.getCardType());
-                card.setToken(request.getToken());  // Проверка и сохранение карты по токену
-                card.setCardLastFour(request.getCardLastFour());
-                card.setCardExpDate(request.getCardExpDate());
-                card.setIsPrimary(true); // Устанавливаем основную карту
-                card.setIsActive(true);  // Устанавливаем как активную карту
+                card.setIsPrimary(true);
+                card.setIsActive(true);
                 cardService.saveCard(card);
             }
             // Обновление подписки
@@ -82,8 +80,8 @@ public class CloudpaymentsWebhookController {
 
     @PostMapping( "/cloudpayments/fail")
     public ResponseEntity<Map<String, Integer>> failWebhook(@Valid CloudpaymentsRequest request) {
-        var entity = mapper.createFromRequest(request);
-        transactionService.save(entity);
+        var transaction = transactionMapper.createFromRequest(request);
+        transactionService.save(transaction);
 
         // Проверка, существует ли карта с указанным cardId
         var card = cardService.getCardByCardId(request.getCardId());
