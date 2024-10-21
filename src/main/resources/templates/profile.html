@@ -4,13 +4,16 @@
 <head>
     <title>Профиль</title>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         .transaction-item {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             padding: 10px 0;
+            border: none;
             border-bottom: 1px solid #e5e5e5;
+            flex-direction: row;
         }
 
         .transaction-item .left-section {
@@ -39,6 +42,30 @@
             color: #777;
             font-size: 12px;
         }
+
+        .transaction-item .middle-section .amount {
+            font-size: 12px; /* Уменьшение шрифта для информации карт */
+            color: #000; /* Оставляем черный цвет для основного текста */
+        }
+
+        .transaction-item .middle-section .status {
+            font-size: 12px; /* Уменьшение шрифта для статуса */
+            color: #777; /* Сделать статус серым */
+        }
+
+        .transaction-item .middle-section .card-expiry {
+            font-size: 12px; /* Уменьшение шрифта для срока действия */
+            color: #000; /* Оставляем черный цвет */
+        }
+
+        .empty-cards{
+            display: none;
+        }
+
+        .empty-cards.active{
+            display: block;
+        }
+
     </style>
 
 </head>
@@ -46,35 +73,126 @@
 <body>
 <div class="container mt-2">
     <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    Карты
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
+                 data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <div class="cards-list" id="cardList">
+                        <div class="empty-cards" id="empty-cards">
+                            <div class="text-center">У вас нет привязанных карт</div>
+                        </div>
+                        <th:block th:each="card : ${cards}">
+                            <div class="card-class" th:data-card-id="${card.cardId}">
+                                <div class="transaction-item mb-2 d-flex justify-content-between align-items-center">
+                                    <!-- Логотип карты -->
+                                    <div class="left-section">
+                                        <th:block th:if="${card.cardType == 'Visa'}">
+                                            <img src="/images/visa-logo.png" alt="Visa" class="card-logo"/>
+                                        </th:block>
+                                        <th:block th:if="${card.cardType == 'MasterCard'}">
+                                            <img src="/images/mastercard-logo.png" alt="MasterCard" class="card-logo"/>
+                                        </th:block>
+                                        <th:block th:if="${card.cardType == 'MIR'}">
+                                            <img src="/images/mir-logo.png" alt="МИР" class="card-logo"/>
+                                        </th:block>
+                                    </div>
+
+                                    <!-- Данные карты -->
+                                    <div class="middle-section">
+                                        <div class="amount" th:text="'****' + ${card.cardLastFour}"></div>
+                                        <!-- Статус карты -->
+                                        <div class="status" th:text="${card.isActive} ? 'Активна' : 'Не активна'"></div>
+                                    </div>
+
+                                    <!-- Дата карты -->
+                                    <div class="date-section">
+                                        <div class="card-expiry" th:text="${card.cardExpDate}"></div>
+                                    </div>
+
+                                    <!-- Стрелочка для разворачивания -->
+                                    <div class="right-section">
+                                        <button type="button" class="btn btn-link" onclick="toggleDetails(this)">
+                                            <i class="bi bi-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Дополнительная информация о карте -->
+                                <div class="card-details"
+                                     style="display: none; justify-content: space-between; align-items: center;">
+                                    <div class="left-content">
+                                        <div class="card-status">
+                                            <span th:if="${card.isPrimary}">
+                                                Основная
+                                            </span>
+                                        </div>
+
+                                        <div class="card-status-button">
+                                            <button type="button" class="btn btn-primary btn-sm"
+                                                    th:data-card-id="${card.cardId}"
+                                                    style="background-color: transparent; border: none; color: #007bff; padding: 0;"
+                                                    onclick="setPrimary(this)">
+                                                <span th:if="${!card.isPrimary}">Сделать основной</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Контейнер для кнопки удаления -->
+                                    <div>
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                                th:data-card-id="${card.cardId}"
+                                                style="background-color: transparent; border: none; color: #dc3545; padding: 0;"
+                                                onclick="deleteCard(this)">
+                                            Удалить карту
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Профиль -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                        aria-expanded="true" aria-controls="collapseOne">
                     Профиль
                 </button>
             </h2>
-            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
+                 data-bs-parent="#accordionExample">
                 <div class="accordion-body">
                     <form th:action="@{/api/profile/update}" method="post" id="profileForm">
                         <!-- Имя -->
                         <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
                             <label for="firstName">Имя</label>
-                            <input type="text" id="firstName" name="firstName" class="form-control" th:value="${profileForm.firstName}" required>
+                            <input type="text" id="firstName" name="firstName" class="form-control"
+                                   th:value="${profileForm.firstName}" required>
                         </div>
 
                         <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
                             <label for="lastName">Фамилия</label>
-                            <input type="text" id="lastName" name="lastName" class="form-control" th:value="${profileForm.lastName}" required>
+                            <input type="text" id="lastName" name="lastName" class="form-control"
+                                   th:value="${profileForm.lastName}" required>
                         </div>
 
                         <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
                             <label for="phone">Телефон</label>
-                            <input type="tel" id="phone" name="phone" class="form-control" th:value="${profileForm.phone}" required pattern="^\+?[0-9]{10,15}$" title="Введите корректный номер телефона">
+                            <input type="tel" id="phone" name="phone" class="form-control"
+                                   th:value="${profileForm.phone}" required pattern="^\+?[0-9]{10,15}$"
+                                   title="Введите корректный номер телефона">
                         </div>
 
                         <div class="mb-3" th:classappend="${firstRun} ? 'd-none' : ''">
                             <label for="email">Электронная почта</label>
-                            <input type="email" id="email" name="email" class="form-control" th:value="${profileForm.email}" required>
+                            <input type="email" id="email" name="email" class="form-control"
+                                   th:value="${profileForm.email}" required>
                         </div>
 
                         <div class="mb-3">
@@ -86,12 +204,14 @@
 
                         <div class="mb-3">
                             <label for="city">Город</label>
-                            <input type="text" id="city" name="city" class="form-control" th:value="${profileForm.city}">
+                            <input type="text" id="city" name="city" class="form-control"
+                                   th:value="${profileForm.city}">
                         </div>
 
                         <div class="mb-3">
                             <label for="profession">Профессия</label>
-                            <input type="text" id="profession" name="profession" class="form-control" th:value="${profileForm.profession}">
+                            <input type="text" id="profession" name="profession" class="form-control"
+                                   th:value="${profileForm.profession}">
                         </div>
                     </form>
                 </div>
@@ -101,11 +221,13 @@
         <!-- Транзакции -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
                     Транзакции
                 </button>
             </h2>
-            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
+                 data-bs-parent="#accordionExample">
                 <div class="accordion-body">
                     <div class="transaction-list" id="transactionList">
                         <th:block th:if="${transactions.isEmpty()}">
@@ -117,7 +239,8 @@
                                     <div class="transaction-type">Подписка</div>
                                 </div>
                                 <div class="right-section">
-                                    <div class="amount" th:text="${transaction.amount} + ' ' + ${transaction.currency}"></div>
+                                    <div class="amount"
+                                         th:text="${transaction.amount} + ' ' + ${transaction.currency}"></div>
 
                                     <!-- Проверка: если дата транзакции совпадает с сегодняшней датой -->
                                     <div class="date-time"
@@ -136,8 +259,42 @@
                     </div>
                 </div>
             </div>
-
-
+        </div>
+        <!-- Тост для уведомления -->
+        <div class="toast align-items-center" id="deleteToast" role="alert" aria-live="assertive" aria-atomic="true"
+             style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1050;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Карта успешно удалена.
+                </div>
+            </div>
+        </div>
+        <!-- Тост для уведомления -->
+        <div class="toast align-items-center" id="errorToast" role="alert" aria-live="assertive" aria-atomic="true"
+             style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1050;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Произошла ошибка, карта не была удалена.
+                </div>
+            </div>
+        </div>
+        <!-- Тост для уведомления -->
+        <div class="toast align-items-center" id="errorToastForSetPrimary" role="alert" aria-live="assertive" aria-atomic="true"
+             style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1050;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Произошла ошибка, карта не была сделана основной.
+                </div>
+            </div>
+        </div>
+        <!-- Тост для уведомления -->
+        <div class="toast align-items-center" id="setPrimaryToast" role="alert" aria-live="assertive" aria-atomic="true"
+             style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1050;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Карта успешно сделана основной.
+                </div>
+            </div>
         </div>
     </div>
 
@@ -152,6 +309,146 @@
 </div>
 </body>
 <th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        let cards = document.getElementsByClassName('card-class')
+        const emptyCards = document.getElementById('empty-cards');
+        if (cards.length === 0) {
+            emptyCards.classList.add('active')
+        }
+
+        function toggleDetails(button) {
+            const icon = button.querySelector('i');
+            // Переключаем классы иконки
+            if (icon.classList.contains('bi-chevron-down')) {
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-up');
+            } else {
+                icon.classList.remove('bi-chevron-up');
+                icon.classList.add('bi-chevron-down');
+            }
+
+
+            const cardDetails = button.closest('.transaction-item').nextElementSibling;
+            if (cardDetails.style.display === 'none' || cardDetails.style.display === '') {
+                cardDetails.style.display = 'flex'; // Показываем
+            } else {
+                cardDetails.style.display = 'none'; // Скрываем
+            }
+        }
+
+        function deleteCard(button) {
+            const cardId = button.getAttribute('data-card-id');
+
+            // Выполняем запрос на удаление карты
+            fetch(`/api/my/cards/${cardId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => {
+                    if (response.status === 204) { // Успешное удаление
+                        // Удаляем элемент карты из DOM
+                        const cardItem = document.querySelector(`[data-card-id="${cardId}"]`)
+
+                        if (cardItem) {
+                            button.closest('.card-details').remove();
+                            cardItem.remove(); // Удаляем элемент из DOM
+                            cards = document.getElementsByClassName('card-class')
+                            if (cards.length === 0) {
+                                emptyCards.classList.add('active')
+                            }
+                        }
+
+                        // Показываем тост с успешным удалением
+                        showDeleteToast();
+                    } else {
+                        // Если удаление не удалось, выводим тост с ошибкой
+                        showErrorToast();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при удалении карты:', error);
+                    // Показываем тост с ошибкой
+                    showErrorToast();
+                });
+        }
+
+
+        function showDeleteToast() {
+            const toast = document.getElementById('deleteToast');
+
+            // Показываем тост
+            toast.style.display = 'block';
+            setTimeout(()=>{toast.style.display='none'},3000);
+        }
+
+        function showSetPrimaryToast() {
+            const toast = document.getElementById('setPrimaryToast');
+
+            // Показываем тост
+            toast.style.display = 'block';
+            setTimeout(()=>{toast.style.display='none'},3000);
+        }
+
+        function showErrorToast() {
+            const toast = document.getElementById('errorToast');
+
+            // Показываем тост
+            toast.style.display = 'block';
+            setTimeout(()=>{toast.style.display='none'},3000);
+        }
+
+        function showErrorToastForSetPrimary() {
+            const toast = document.getElementById('errorToastForSetPrimary');
+
+            // Показываем тост
+            toast.style.display = 'block';
+            setTimeout(()=>{toast.style.display='none'},3000);
+        }
+    </script>
+    <script th:inline="javascript">
+        function setPrimary(button) {
+            const cardId = button.getAttribute('data-card-id');
+
+            fetch(`/api/my/cards/${cardId}/set-primary`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => {
+
+                    // Убираем статус основной со всех карт
+                    document.querySelectorAll('.card-status').forEach(el => {
+                        el.style.display='none'
+                        el.textContent='Основная';
+
+                    });
+
+                    document.querySelectorAll('.card-status-button').forEach(el => {
+                        el.style.display='block';
+                        el.querySelector('button').textContent='Сделать основной';
+                    });
+
+                    // Добавляем статус основной к выбранной карте
+                    const cardItem = document.querySelector(`[data-card-id="${cardId}"]`);
+                    console.log(cardItem)
+                    console.log(cardItem.querySelector('.card-status'));
+                    cardItem.querySelector('.card-status').style.display='block';
+                    cardItem.querySelector('.card-status-button').style.display='none';
+                    // Меняем кнопку на текст
+
+                    showSetPrimaryToast()
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorToastForSetPrimary();
+                });
+        }
+
+
+    </script>
     <script th:inline="javascript">
         const form = document.getElementById('profileForm');
         let initialFormDataString = JSON.stringify(Object.fromEntries(new FormData(form).entries()));
@@ -212,30 +509,30 @@
         Telegram.WebApp.BackButton.hide()
         Telegram.WebApp.MainButton.text = "Продолжить";
         Telegram.WebApp.MainButton.hasShineEffect = true;
-         Telegram.WebApp.onEvent('mainButtonClicked', function () {
-             if (isFormChanged()) {
-                 checkFormValidity()
-                 saveData()
-                 window.location.href = "/onboarding"
-             } else {
-                 let params = {}
-                 params.title = "Вы заполнили не все данные в профиле. 😞"
-                 params.message = "Мы хотели бы лучше узнать вас, чтобы сделать ваше пребывание в сообществе ещё более полезным и персонализированным. Хотя заполнение профиля необязательно, ваша информация поможет нам предлагать более подходящие рекомендации и активности."
-                 params.buttons = [{
-                     "id": "skip",
-                     "type": "default",
-                     "text": "Пропустить"
-                 }, {
-                     "type": "default",
-                     "text": "Заполнить"
-                 }]
-                 Telegram.WebApp.showPopup(params, function (id) {
-                     if (id === "skip") {
-                         window.location.href = "/onboarding"
-                     }
-                 })
-             }
-         })
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            if (isFormChanged()) {
+                checkFormValidity()
+                saveData()
+                window.location.href = "/onboarding"
+            } else {
+                let params = {}
+                params.title = "Вы заполнили не все данные в профиле. 😞"
+                params.message = "Мы хотели бы лучше узнать вас, чтобы сделать ваше пребывание в сообществе ещё более полезным и персонализированным. Хотя заполнение профиля необязательно, ваша информация поможет нам предлагать более подходящие рекомендации и активности."
+                params.buttons = [{
+                    "id": "skip",
+                    "type": "default",
+                    "text": "Пропустить"
+                }, {
+                    "type": "default",
+                    "text": "Заполнить"
+                }]
+                Telegram.WebApp.showPopup(params, function (id) {
+                    if (id === "skip") {
+                        window.location.href = "/onboarding"
+                    }
+                })
+            }
+        })
         Telegram.WebApp.MainButton.show();
     </script>
     <script th:inline="javascript" th:if="${!firstRun}">
@@ -244,7 +541,7 @@
             window.location.href = "/"
         })
 
-        form.addEventListener('input', function() {
+        form.addEventListener('input', function () {
             if (isFormChanged()) {
                 Telegram.WebApp.isClosingConfirmationEnabled = true;
                 Telegram.WebApp.MainButton.setText("Сохранить изменения");

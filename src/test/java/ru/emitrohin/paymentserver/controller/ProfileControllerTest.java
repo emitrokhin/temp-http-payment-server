@@ -11,12 +11,16 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.emitrohin.paymentserver.dto.CardResponse;
 import ru.emitrohin.paymentserver.dto.TransactionResponse;
+import ru.emitrohin.paymentserver.dto.mapper.CardMapper;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
 import ru.emitrohin.paymentserver.dto.profile.ProfileUpdateDTO;
+import ru.emitrohin.paymentserver.model.Card;
 import ru.emitrohin.paymentserver.model.FirstRun;
 import ru.emitrohin.paymentserver.model.Profile;
 import ru.emitrohin.paymentserver.model.Transaction;
+import ru.emitrohin.paymentserver.service.CardService;
 import ru.emitrohin.paymentserver.service.FirstRunService;
 import ru.emitrohin.paymentserver.service.ProfileService;
 import ru.emitrohin.paymentserver.service.TransactionService;
@@ -60,11 +64,23 @@ public class ProfileControllerTest {
     @MockBean
     private TransactionMapper transactionMapper;
 
+    @MockBean
+    private CardService cardService;
+
+    @MockBean
+    private CardMapper cardMapper;
+
     private static final Long TELEGRAM_ID = 1234567890L;
     private static final Profile TEST_PROFILE = createTestProfile();
     private static final ProfileUpdateDTO TEST_PROFILE_DTO = createProfileUpdateDTO();
-    private static final Transaction TEST_TRANSACTION1 = createTestTransaction(BigDecimal.valueOf(100), LocalDateTime.now(), "RUB");
-    private static final Transaction TEST_TRANSACTION2 = createTestTransaction(BigDecimal.valueOf(200), LocalDateTime.now().minusDays(1), "RUB");
+    private static final Transaction TEST_TRANSACTION1 = createTestTransaction(BigDecimal.valueOf(100),
+            LocalDateTime.now(), "RUB");
+    private static final Transaction TEST_TRANSACTION2 = createTestTransaction(BigDecimal.valueOf(200),
+            LocalDateTime.now().minusDays(1), "RUB");
+    private static final Card TEST_CARD1 = createTestCard(3055, "05/55", true,
+            true, "VISA", "12345");
+    private static final Card TEST_CARD2 = createTestCard(2222, "03/33", true,
+            false, "MASTERCARD", "54321");
 
     private static Profile createTestProfile() {
         var profile = new Profile();
@@ -97,6 +113,18 @@ public class ProfileControllerTest {
         transaction.setDateTime(dateTime);
         transaction.setCurrency(currency);
         return transaction;
+    }
+
+    private static Card createTestCard(int cardLastFour, String cardExpDate, Boolean isActive, Boolean isPrimary,
+                                       String cardType, String cardId) {
+        var card = new Card();
+        card.setCardLastFour(cardLastFour);
+        card.setCardExpDate(cardExpDate);
+        card.setIsActive(isActive);
+        card.setIsPrimary(isPrimary);
+        card.setCardType(cardType);
+        card.setCardId(cardId);
+        return card;
     }
 
     private ProfileUpdateDTO createLimitedProfileDTO() {
@@ -151,10 +179,89 @@ public class ProfileControllerTest {
 
     @Test
     @WithMockUser(username = "1234567890")
-    void getUser_ProfileExists_NoTransactions_ShouldReturnEmptyTransactions() throws Exception {
+    void getUser_ProfileExists_ShouldReturnProfilePageWithTransactionsAndCards() throws Exception {
+        // Настройка мока
+        when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PROFILE));
+        when(transactionService.getAllTransactions(anyLong())).thenReturn(List.of(TEST_TRANSACTION1, TEST_TRANSACTION2));
+        when(transactionMapper.toTransactionResponse(TEST_TRANSACTION1)).thenReturn(
+                new TransactionResponse(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION1.getCurrency()));
+        when(transactionMapper.toTransactionResponse(TEST_TRANSACTION2)).thenReturn(
+                new TransactionResponse(TEST_TRANSACTION2.getAmount(), TEST_TRANSACTION2.getDateTime(), TEST_TRANSACTION2.getCurrency()));
+
+        // Здесь исправление в порядке аргументов в CardResponse
+        when(cardService.getAllCards(anyLong())).thenReturn(List.of(TEST_CARD1, TEST_CARD2));
+        when(cardMapper.toCardResponse(TEST_CARD1)).thenReturn(new CardResponse(
+                TEST_CARD1.getCardLastFour(), TEST_CARD1.getCardExpDate(), TEST_CARD1.getIsActive(),
+                TEST_CARD1.getIsPrimary(), TEST_CARD1.getCardType(), TEST_CARD1.getCardId()));
+        when(cardMapper.toCardResponse(TEST_CARD2)).thenReturn(new CardResponse(
+                TEST_CARD2.getCardLastFour(), TEST_CARD2.getCardExpDate(), TEST_CARD2.getIsActive(),
+                TEST_CARD2.getIsPrimary(), TEST_CARD2.getCardType(), TEST_CARD2.getCardId()));
+
+        when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
+        when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
+
+        // Выполнение запроса
+        var result = mockMvc.perform(get("/profile"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile"))
+                .andExpect(model().attributeExists("firstRun"))
+                .andExpect(model().attributeExists("profileForm"))
+                .andExpect(model().attributeExists("transactions"))
+                .andExpect(model().attributeExists("cards"))
+                .andReturn();
+
+        // Получение списка транзакций и карт из результата
+        var transactions = (List<TransactionResponse>) result.getModelAndView().getModel().get("transactions");
+        var cards = (List<CardResponse>) result.getModelAndView().getModel().get("cards");
+
+        // Проверка списка транзакций с использованием AssertJ
+        assertThat(transactions)
+                .hasSize(2)
+                .extracting(TransactionResponse::amount)
+                .containsExactlyInAnyOrder(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION2.getAmount());
+
+        assertThat(transactions)
+                .extracting(TransactionResponse::dateTime)
+                .containsExactlyInAnyOrder(TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION2.getDateTime());
+
+        assertThat(transactions)
+                .extracting(TransactionResponse::currency)
+                .containsExactlyInAnyOrder(TEST_TRANSACTION1.getCurrency(), TEST_TRANSACTION2.getCurrency());
+
+        // Проверка списка карт с использованием AssertJ
+        assertThat(cards)
+                .hasSize(2)
+                .extracting(CardResponse::cardLastFour)
+                .containsExactlyInAnyOrder(TEST_CARD1.getCardLastFour(), TEST_CARD2.getCardLastFour());
+
+        assertThat(cards)
+                .extracting(CardResponse::cardExpDate)
+                .containsExactlyInAnyOrder(TEST_CARD1.getCardExpDate(), TEST_CARD2.getCardExpDate());
+
+        assertThat(cards)
+                .extracting(CardResponse::isActive)
+                .containsExactlyInAnyOrder(TEST_CARD1.getIsActive(), TEST_CARD2.getIsActive());
+
+        assertThat(cards)
+                .extracting(CardResponse::isPrimary)
+                .containsExactlyInAnyOrder(TEST_CARD1.getIsPrimary(), TEST_CARD2.getIsPrimary());
+
+        assertThat(cards)
+                .extracting(CardResponse::cardType)
+                .containsExactlyInAnyOrder(TEST_CARD1.getCardType(), TEST_CARD2.getCardType());
+
+        assertThat(cards)
+                .extracting(CardResponse::cardId)
+                .containsExactlyInAnyOrder(TEST_CARD1.getCardId(), TEST_CARD2.getCardId());
+    }
+
+    @Test
+    @WithMockUser(username = "1234567890")
+    void getUser_ProfileExists_NoTransactions_NoCards_ShouldReturnEmptyTransactions() throws Exception {
         // Настройка мока
         when(profileService.findByTelegramId(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PROFILE));
         when(transactionService.getAllTransactions(anyLong())).thenReturn(emptyList()); // Имитация отсутствия транзакций
+        when(cardService.getAllCards(anyLong())).thenReturn(emptyList());
         when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(empty());
         when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
@@ -165,15 +272,20 @@ public class ProfileControllerTest {
                 .andExpect(model().attributeExists("firstRun"))
                 .andExpect(model().attributeExists("profileForm"))
                 .andExpect(model().attributeExists("transactions"))
+                .andExpect(model().attributeExists("cards"))
                 .andReturn();
 
-        // Получение списка транзакций из результата
+        // Получение списка транзакций и карт из результата
         var transactions = (List<TransactionResponse>) result.getModelAndView().getModel().get("transactions");
+        var cards = (List<CardResponse>) result.getModelAndView().getModel().get("cards");
 
-        // Проверка списка транзакций с использованием AssertJ
+        // Проверка списка транзакцийи карт с использованием AssertJ
         assertThat(transactions)
                 .isNotNull()
                 .isEmpty(); // Проверяем, что список транзакций пустой
+        assertThat(cards)
+                .isNotNull()
+                .isEmpty();
     }
 
     @Test
@@ -194,14 +306,20 @@ public class ProfileControllerTest {
                 .andExpect(view().name("profile"))
                 .andExpect(model().attributeExists("firstRun")) // Проверяем наличие флага первого запуска
                 .andExpect(model().attributeExists("profileForm"))
-                .andExpect(model().attributeExists("transactions")); // Проверяем наличие атрибута "transactions"
+                .andExpect(model().attributeExists("transactions"))
+                .andExpect(model().attributeExists("cards")); // Проверяем наличие атрибута "transactions"
 
-// Получаем атрибут "transactions" из модели
+        // Получаем атрибут "transactions" из модели
         var transactions = (List<?>) result.andReturn().getModelAndView().getModel().get("transactions");
 
-// Проверяем, что это пустой список
-        assertThat(transactions).isNotNull(); // Убедитесь, что он не null
-        assertThat(transactions).isEmpty(); // Проверяем, что список пустой
+        // Получаем атрибут "cards" из модели
+        var cards = (List<?>) result.andReturn().getModelAndView().getModel().get("cards");
+
+        // Проверяем, что это пустые списки
+        assertThat(transactions).isNotNull();
+        assertThat(transactions).isEmpty();
+        assertThat(cards).isEmpty();
+        assertThat(cards).isEmpty();
 
         // Получаем DTO профиля из результата
         var profileForm = result.andReturn().getModelAndView().getModel().get("profileForm");
@@ -253,6 +371,13 @@ public class ProfileControllerTest {
         when(transactionService.getAllTransactions(anyLong())).thenReturn(List.of(TEST_TRANSACTION1, TEST_TRANSACTION2));
         when(transactionMapper.toTransactionResponse(TEST_TRANSACTION1)).thenReturn(new TransactionResponse(TEST_TRANSACTION1.getAmount(), TEST_TRANSACTION1.getDateTime(), TEST_TRANSACTION1.getCurrency()));
         when(transactionMapper.toTransactionResponse(TEST_TRANSACTION2)).thenReturn(new TransactionResponse(TEST_TRANSACTION2.getAmount(), TEST_TRANSACTION2.getDateTime(), TEST_TRANSACTION2.getCurrency()));
+        when(cardService.getAllCards(anyLong())).thenReturn(List.of(TEST_CARD1, TEST_CARD2));
+        when(cardMapper.toCardResponse(TEST_CARD1)).thenReturn(new CardResponse(TEST_CARD1.getCardLastFour(),
+                TEST_CARD1.getCardType(), TEST_CARD1.getIsActive(), TEST_CARD1.getIsPrimary(), TEST_CARD1.getCardExpDate(),
+                TEST_CARD1.getCardId()));
+        when(cardMapper.toCardResponse(TEST_CARD2)).thenReturn(new CardResponse(TEST_CARD2.getCardLastFour(),
+                TEST_CARD2.getCardType(), TEST_CARD2.getIsActive(), TEST_CARD2.getIsPrimary(), TEST_CARD2.getCardExpDate(),
+                TEST_CARD2.getCardId()));
         when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(empty());
         when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
@@ -263,6 +388,7 @@ public class ProfileControllerTest {
                 .andExpect(model().attributeExists("firstRun"))
                 .andExpect(model().attributeExists("profileForm"))
                 .andExpect(model().attributeExists("transactions"))
+                .andExpect(model().attributeExists("cards"))
                 .andReturn();
 
         // Получение HTML-контента
@@ -287,5 +413,12 @@ public class ProfileControllerTest {
         assertThat(content).contains(TEST_TRANSACTION1.getDateTime().format(formatterTime)); // Используем formatter
         assertThat(content).contains(TEST_TRANSACTION2.getAmount().toString() + " " + TEST_TRANSACTION2.getCurrency());
         assertThat(content).contains(TEST_TRANSACTION2.getDateTime().format(formatterDate)); // Используем formatter
+
+        assertThat(content).contains("****" + TEST_CARD1.getCardLastFour());
+        assertThat(content).contains("****" + TEST_CARD2.getCardLastFour());
+        assertThat(content).contains(TEST_CARD1.getCardType());
+        assertThat(content).contains(TEST_CARD2.getCardType());
+        assertThat(content).contains(TEST_CARD1.getCardType());
+        assertThat(content).contains(TEST_CARD2.getCardType());
     }
 }
