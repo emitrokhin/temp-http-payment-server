@@ -10,8 +10,8 @@ import java.util.Optional;
 
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
 
-    Optional<Subscription> findFirstByTelegramIdAndSubscriptionDateBetween(Long telegramId, LocalDateTime startDate, LocalDateTime endDate);
-    Optional<Subscription> findByTelegramIdAndSubscriptionStatusAndSubscriptionDateBetween(
+    Optional<Subscription> findFirstByTelegramIdAndSubscriptionStartDateBetween(Long telegramId, LocalDateTime startDate, LocalDateTime endDate);
+    Optional<Subscription> findByTelegramIdAndSubscriptionStatusAndSubscriptionStartDateBetween(
             Long telegramId,
             SubscriptionStatus subscriptionStatus,
             LocalDateTime startOfMonth,

@@ -24,7 +24,7 @@ public class SubscriptionService {
         var startOfNextMonth = startOfMonth.plusMonths(1);
 
         // Поиск подписки в репозитории
-        return subscriptionRepository.findFirstByTelegramIdAndSubscriptionDateBetween(
+        return subscriptionRepository.findFirstByTelegramIdAndSubscriptionStartDateBetween(
                 telegramId, startOfMonth, startOfNextMonth);
     }
 
@@ -39,7 +39,7 @@ public class SubscriptionService {
         // Начало следующего месяца
         var startOfNextMonth = startOfMonth.plusMonths(1);
 
-        return subscriptionRepository.findByTelegramIdAndSubscriptionStatusAndSubscriptionDateBetween(
+        return subscriptionRepository.findByTelegramIdAndSubscriptionStatusAndSubscriptionStartDateBetween(
                 telegramId, SubscriptionStatus.PAID, startOfMonth, startOfNextMonth).isPresent();
     }
 
@@ -47,7 +47,8 @@ public class SubscriptionService {
         var subscription = new Subscription();
         subscription.setTelegramId(telegramId);
         subscription.setSubscriptionStatus(SubscriptionStatus.PENDING);
-        subscription.setSubscriptionDate(LocalDateTime.now());
+        subscription.setSubscriptionStartDate(LocalDateTime.now());
+        subscription.setSubscriptionEndDate(LocalDateTime.now().plusMonths(1));
         subscriptionRepository.save(subscription);
     }
 
@@ -55,7 +56,7 @@ public class SubscriptionService {
         var subscription = new Subscription();
         subscription.setTelegramId(telegramId);
         subscription.setSubscriptionStatus(SubscriptionStatus.PAID);
-        subscription.setSubscriptionDate(LocalDateTime.now());
+        subscription.setSubscriptionStartDate(LocalDateTime.now());
         subscriptionRepository.save(subscription);
     }
 
@@ -67,7 +68,7 @@ public class SubscriptionService {
         // Начало следующего месяца
         var startOfNextMonth = startOfMonth.plusMonths(1);
 
-        subscriptionRepository.findFirstByTelegramIdAndSubscriptionDateBetween(telegramId, startOfMonth, startOfNextMonth)
+        subscriptionRepository.findFirstByTelegramIdAndSubscriptionStartDateBetween(telegramId, startOfMonth, startOfNextMonth)
                 .ifPresentOrElse(
                         subscription -> {
                             subscription.setSubscriptionStatus(status);
