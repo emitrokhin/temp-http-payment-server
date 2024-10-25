@@ -1,31 +1,36 @@
 package ru.emitrohin.paymentserver.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import ru.emitrohin.paymentserver.client.TelegramBotClient;
 import ru.emitrohin.paymentserver.model.Subscription;
 import ru.emitrohin.paymentserver.model.SubscriptionStatus;
 import ru.emitrohin.paymentserver.repository.SubscriptionRepository;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@EnableScheduling
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
+    private final TelegramBotClient telegramBotClient;
 
     public Optional<Subscription> findCurrentSubscription(long telegramId) {
-        // Начало текущего месяца
-        var startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-
-        // Начало следующего месяца
-        var startOfNextMonth = startOfMonth.plusMonths(1);
-
-        // Поиск подписки в репозитории
-        return subscriptionRepository.findFirstByTelegramIdAndSubscriptionStartDateBetween(
-                telegramId, startOfMonth, startOfNextMonth);
+        return subscriptionRepository.findFirstByTelegramIdAndSubscriptionEndDateAfter(
+                telegramId, LocalDateTime.now());
     }
 
     public void save(Subscription subscription) {
@@ -33,14 +38,9 @@ public class SubscriptionService {
     }
 
     public boolean hasPaidSubscription(long telegramId) {
-        // Начало текущего месяца
-        var startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-
-        // Начало следующего месяца
-        var startOfNextMonth = startOfMonth.plusMonths(1);
-
-        return subscriptionRepository.findByTelegramIdAndSubscriptionStatusAndSubscriptionStartDateBetween(
-                telegramId, SubscriptionStatus.PAID, startOfMonth, startOfNextMonth).isPresent();
+        return subscriptionRepository.findByTelegramIdAndSubscriptionStatus(telegramId, SubscriptionStatus.PAID)
+                .filter(subscription -> subscription.getSubscriptionEndDate().isAfter(LocalDateTime.now()))
+                .isPresent();
     }
 
     public void createPendingSubscription(long telegramId) {
@@ -62,13 +62,7 @@ public class SubscriptionService {
 
     //TODO рефакторинг + hasPaidSubscription + findCurrent
     public void createOrUpdateCurrentSubscriptionStatus(long telegramId, SubscriptionStatus status) {
-        // Начало текущего месяца
-        var startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
-
-        // Начало следующего месяца
-        var startOfNextMonth = startOfMonth.plusMonths(1);
-
-        subscriptionRepository.findFirstByTelegramIdAndSubscriptionStartDateBetween(telegramId, startOfMonth, startOfNextMonth)
+        subscriptionRepository.findFirstByTelegramIdAndSubscriptionEndDateAfter(telegramId, LocalDateTime.now())
                 .ifPresentOrElse(
                         subscription -> {
                             subscription.setSubscriptionStatus(status);
@@ -77,4 +71,48 @@ public class SubscriptionService {
                         () -> createPaidSubscription(telegramId)
                 );
     }
+
+    public void extendSubscription(long telegramId) {
+        subscriptionRepository.findFirstByTelegramIdAndSubscriptionEndDateAfter(telegramId, LocalDateTime.now())
+                .ifPresent(
+                        subscription -> {
+                            // Продлеваем подписку на еще один месяц с текущей даты окончания
+                            subscription.setSubscriptionEndDate(subscription.getSubscriptionEndDate().plusMonths(1));
+                            save(subscription);
+                        }
+                );
+    }
+
+    //    @Scheduled(cron = "0 0 0 * * *") // Каждый день в полночь
+    @Scheduled(cron = "*/10 * * * * *")
+    public void checkExpiredSubscriptions() {
+        var now = LocalDateTime.now();
+
+        subscriptionRepository.findAllBySubscriptionEndDateBeforeAndSubscriptionStatus(now, SubscriptionStatus.PAID)
+                .forEach(subscription -> expireSubscription(subscription.getTelegramId()));
+
+        // Проверяем, если осталось 3 дня до конца подписки
+        var threeDaysBeforeEnd = now.plusDays(3);
+
+        subscriptionRepository.findAllBySubscriptionEndDateAfterAndSubscriptionStatus(threeDaysBeforeEnd, SubscriptionStatus.PAID)
+                .forEach(subscription -> {
+                    if (subscription.getSubscriptionEndDate().isBefore(threeDaysBeforeEnd)) {
+                        // Отправляем напоминание
+                        telegramBotClient.sendMessage(subscription.getTelegramId(), "До конца вашей подписки осталось 3 дня. Пожалуйста, продлите подписку.");
+                    }
+                });
+    }
+
+
+    public void expireSubscription(long telegramId) {
+        subscriptionRepository.findFirstByTelegramId(telegramId)
+                .ifPresent(subscription -> {
+                    subscription.setSubscriptionStatus(SubscriptionStatus.EXPIRED);
+                    save(subscription);
+                    telegramBotClient.removeFromTelegramGroup(telegramId);
+                    telegramBotClient.sendExpirationNotification(telegramId);
+                    telegramBotClient.verifyUserLeftGroup(telegramId);
+                });
+    }
+
 }
