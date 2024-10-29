@@ -78,7 +78,7 @@
         Telegram.WebApp.isClosingConfirmationEnabled = false;
         Telegram.WebApp.MainButton.text = "К сообществу";
         Telegram.WebApp.onEvent('mainButtonClicked', function () {
-            Telegram.WebApp.openTelegramLink([[${@environment.getProperty('app.telegram.societyLink')}]]);
+            Telegram.WebApp.openTelegramLink([[${@environment.getProperty('app.telegram.society-link')}]]);
         });
         Telegram.WebApp.MainButton.show();
 
