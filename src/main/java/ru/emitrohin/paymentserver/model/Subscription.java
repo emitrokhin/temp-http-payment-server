@@ -16,7 +16,10 @@ public class Subscription extends BaseEntity {
     private Long telegramId;
 
     @Column(nullable = false)
-    private LocalDateTime subscriptionDate;
+    private LocalDateTime subscriptionStartDate;
+
+    @Column(nullable = false)
+    private LocalDateTime subscriptionEndDate;
 
     @Column(nullable = false)
     private SubscriptionStatus subscriptionStatus;
