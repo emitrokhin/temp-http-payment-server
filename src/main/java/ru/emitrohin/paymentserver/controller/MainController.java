@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import ru.emitrohin.paymentserver.config.TelegramProperties;
 import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
 import ru.emitrohin.paymentserver.dto.profile.ProfilePaymentDTO;
+import ru.emitrohin.paymentserver.service.CardService;
 import ru.emitrohin.paymentserver.service.FirstRunService;
 import ru.emitrohin.paymentserver.service.ProfileService;
 import ru.emitrohin.paymentserver.service.SubscriptionService;
@@ -31,6 +32,8 @@ public class MainController {
     private final SubscriptionService subscriptionService;
 
     private final TelegramProperties properties;
+
+    private final CardService cardService;
 
     @GetMapping("/")
     public String index() {
@@ -58,9 +61,12 @@ public class MainController {
 
         var profilePaymentForm = profileService.findByTelegramId(telegramId)
                 .map(mapper::createPaymentResponse)
-                .orElseGet(() -> new ProfilePaymentDTO("","","",""));
+                .orElseGet(() -> new ProfilePaymentDTO("","","","", telegramId));
+
+        var primaryCard = cardService.getPrimaryCard(telegramId);
 
         model.addAttribute("profilePaymentForm", profilePaymentForm);
+        model.addAttribute("primaryCard", primaryCard);
 
         return "subscribe";
     }
