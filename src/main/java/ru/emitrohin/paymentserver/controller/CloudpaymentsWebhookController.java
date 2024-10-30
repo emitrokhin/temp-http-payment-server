@@ -87,19 +87,24 @@ public class CloudpaymentsWebhookController {
 
     @PostMapping( "/cloudpayments/fail")
     public ResponseEntity<Map<String, Integer>> failWebhook(@Valid CloudpaymentsRequest request) {
-        var telegramId = Long.parseLong(request.getAccountId());
-        var transaction = transactionMapper.createFromRequest(request);
-        transactionService.save(transaction);
+        try {
+            var telegramId = Long.parseLong(request.getAccountId());
+            var transaction = transactionMapper.createFromRequest(request);
+            transactionService.save(transaction);
 
-        var payment = paymentService.getLastPendingPayment(telegramId);
-        paymentService.updatePaymentStatus(payment.get().getId(), PaymentStatus.FAILED);
+            var payment = paymentService.getLastPendingPayment(telegramId);
+            paymentService.updatePaymentStatus(payment.get().getId(), PaymentStatus.FAILED);
 
-        // Проверка, существует ли карта с указанным cardId
-        var card = cardService.getCardByCardId(request.getCardId());
+            // Проверка, существует ли карта с указанным cardId
+            var card = cardService.getCardByCardId(request.getCardId());
 
-        if (card != null) {
-            // Деактивация карты в случае неудачной транзакции
-            cardService.deactivateCard(card.getCardId());
+            if (card != null) {
+                // Деактивация карты в случае неудачной транзакции
+                cardService.deactivateCard(card.getCardId());
+            }
+
+        } catch (NumberFormatException e) {
+            logger.error("AccountId {} should be numeric. Can't save to DB", request.getAccountId());
         }
 
         //TODO выслать в бот уведомление с кнопкой
