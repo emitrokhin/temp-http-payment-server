@@ -192,10 +192,10 @@ public class ProfileControllerTest {
         when(cardService.getAllCards(anyLong())).thenReturn(List.of(TEST_CARD1, TEST_CARD2));
         when(cardMapper.toCardResponse(TEST_CARD1)).thenReturn(new CardResponse(
                 TEST_CARD1.getCardLastFour(), TEST_CARD1.getCardExpDate(), TEST_CARD1.getIsActive(),
-                TEST_CARD1.getIsPrimary(), TEST_CARD1.getCardType(), TEST_CARD1.getCardId()));
+                TEST_CARD1.getIsPrimary(), TEST_CARD1.getCardType(), TEST_CARD1.getCardId(), TEST_CARD1.getToken()));
         when(cardMapper.toCardResponse(TEST_CARD2)).thenReturn(new CardResponse(
                 TEST_CARD2.getCardLastFour(), TEST_CARD2.getCardExpDate(), TEST_CARD2.getIsActive(),
-                TEST_CARD2.getIsPrimary(), TEST_CARD2.getCardType(), TEST_CARD2.getCardId()));
+                TEST_CARD2.getIsPrimary(), TEST_CARD2.getCardType(), TEST_CARD2.getCardId(), TEST_CARD2.getToken()));
 
         when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(Optional.empty());
         when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
@@ -374,10 +374,10 @@ public class ProfileControllerTest {
         when(cardService.getAllCards(anyLong())).thenReturn(List.of(TEST_CARD1, TEST_CARD2));
         when(cardMapper.toCardResponse(TEST_CARD1)).thenReturn(new CardResponse(TEST_CARD1.getCardLastFour(),
                 TEST_CARD1.getCardType(), TEST_CARD1.getIsActive(), TEST_CARD1.getIsPrimary(), TEST_CARD1.getCardExpDate(),
-                TEST_CARD1.getCardId()));
+                TEST_CARD1.getCardId(), TEST_CARD1.getToken()));
         when(cardMapper.toCardResponse(TEST_CARD2)).thenReturn(new CardResponse(TEST_CARD2.getCardLastFour(),
                 TEST_CARD2.getCardType(), TEST_CARD2.getIsActive(), TEST_CARD2.getIsPrimary(), TEST_CARD2.getCardExpDate(),
-                TEST_CARD2.getCardId()));
+                TEST_CARD2.getCardId(), TEST_CARD2.getToken()));
         when(firstRunService.findFirstRun(TELEGRAM_ID)).thenReturn(empty());
         when(profileMapper.createUpdateResponse(TEST_PROFILE)).thenReturn(TEST_PROFILE_DTO);
 
