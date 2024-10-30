@@ -4,6 +4,13 @@
     <title>Оплата подписки</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <style>
+        .payment-option.selected {
+            background-color: #4aa5ff !important;
+            color: #fff !important;
+            border-color: #6093d3 !important;
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-2">
@@ -15,6 +22,8 @@
             <div class="card">
                 <div class="card-body">
                     <form th:action="@{/pay}" th:object="${profilePaymentForm}" method="post" id="profilePaymentForm" class="needs-validation" novalidate>
+                        <input type="hidden" id="telegramIdField" th:field="*{telegramId}" th:value="${profilePaymentForm.telegramId}" />
+
                         <!-- Поле 'Имя' -->
                         <div class="mb-3">
                             <label for="firstName" class="form-label">Имя:</label>
@@ -42,9 +51,52 @@
                         <!-- Поле 'Email' -->
                         <div class="mb-3">
                             <label for="email" class="form-label">Email:</label>
-                            <input type="email" class="form-control" id="email" placeholder="example@mail.com"  th:field="*{email}" required maxlength="100" pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" />
+                            <input type="email" class="form-control" id="email" placeholder="example@mail.com" th:field="*{email}" required maxlength="100" pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$">
                             <div class="invalid-feedback">Введите корректный email. Используйте только латинские буквы.</div>
                         </div>
+
+                        <!-- Основная карта и кнопка с информацией для оплаты сохраненной картой -->
+                        <div class="mt-4" th:if="${primaryCard != null}">
+                            <p>Способ оплаты:</p>
+                            <div class="mt-3 d-flex justify-content-center">
+                                <button type="button" id="paySavedCardButton" class="btn payment-option text-dark bg-white border d-flex align-items-center"
+                                        th:data-telegram-id="${profilePaymentForm.telegramId()}"
+                                        th:data-card-token="${primaryCard.token}"
+                                        onclick="selectPaymentMethod(this, 'saved')"
+                                        style="width: 400px;">
+                                    <!-- Логотип карты -->
+                                    <div class="left-section me-2">
+                                        <th:block th:if="${primaryCard.cardType == 'Visa'}">
+                                            <img src="/images/visa-logo.png" alt="Visa" class="card-logo"/>
+                                        </th:block>
+                                        <th:block th:if="${primaryCard.cardType == 'MasterCard'}">
+                                            <img src="/images/mastercard-logo.png" alt="MasterCard" class="card-logo"/>
+                                        </th:block>
+                                        <th:block th:if="${primaryCard.cardType == 'MIR'}">
+                                            <img src="/images/mir-logo.png" alt="МИР" class="card-logo"/>
+                                        </th:block>
+                                    </div>
+                                    <span th:text="${primaryCard.cardExpDate}" style="margin-left: auto"></span>
+                                </button>
+                            </div>
+
+                            <!-- Кнопка для оплаты новой картой -->
+                            <div class="mt-3 d-flex justify-content-center">
+                                <button type="button" id="payNewCardButton" class="btn payment-option text-dark bg-white border"
+                                        th:data-telegram-id="${profilePaymentForm.telegramId()}"
+                                        onclick="selectPaymentMethod(this, 'new')"
+                                        style="width: 400px;">
+                                    Оплатить новой картой
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <!-- Индикатор загрузки -->
+                        <div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                            <img src="/images/loading.gif" alt="Loading..." />
+                        </div>
+
 
                         <small>
                             Оплачивая данный заказ, вы соглашаетесь с
@@ -61,17 +113,73 @@
 </body>
 <th:block th:fragment="scripts">
     <script th:inline="javascript">
-        Telegram.WebApp.isClosingConfirmationEnabled = true;
-        Telegram.WebApp.MainButton.text = "Купить за 2990₽";
-        Telegram.WebApp.MainButton.hasShineEffect = true;
-        Telegram.WebApp.onEvent('mainButtonClicked', function () {
-            document.getElementById('profilePaymentForm').requestSubmit();
-        });
-        Telegram.WebApp.MainButton.show();
-        Telegram.WebApp.SecondaryButton.hide();
-        Telegram.WebApp.BackButton.hide();
-    </script>
+        let selectedMethod = '';
 
+        function selectPaymentMethod(button, method) {
+            // Убираем выделение с обеих кнопок
+            document.querySelectorAll('.payment-option').forEach(btn => btn.classList.remove('selected'));
+
+            button.classList.add('selected');
+
+            selectedMethod = method;
+
+            Telegram.WebApp.MainButton.text = "Купить за 2990₽";
+            Telegram.WebApp.MainButton.show();
+        }
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
+            if (selectedMethod === 'saved') {
+                payWithSavedCard();
+            } else if (selectedMethod === 'new') {
+                Telegram.WebApp.onEvent('mainButtonClicked', function () {
+                    document.getElementById('profilePaymentForm').requestSubmit();
+                });
+            }
+        });
+
+        function payWithSavedCard() {
+            const button = document.getElementById('paySavedCardButton');
+            const token = button.getAttribute('data-card-token');
+            const telegramId = button.getAttribute('data-telegram-id');
+            const price = 2990.00;
+            const description = "Оплата подписки на 1 мес. Сообщество \"Как дома\" Юлии Митрохиной";
+
+            // Показать индикатор загрузки
+            document.getElementById('loadingIndicator').style.display = 'block';
+
+            fetch('/tokens/charge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    Amount: price,
+                    Currency: 'RUB',
+                    AccountId: telegramId,
+                    TrInitiatorCode: 0,
+                    Token: token,
+                    Description: description
+                })
+            })
+                .then(response => {
+                    // Скрыть индикатор загрузки после получения ответа
+                    document.getElementById('loadingIndicator').style.display = 'none';
+
+                    if (response.ok) {
+                        window.location.href = "/success";
+                    } else {
+                        window.location.href = "/fail";
+                    }
+                })
+                .catch(error => {
+                    // Скрыть индикатор загрузки в случае ошибки
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    console.error('Ошибка:', error);
+                    window.location.href = "/fail";
+                });
+        }
+
+
+    </script>
     <script th:inline="javascript">
         //TODO исправить валидацию
         $(document).ready(function () {
