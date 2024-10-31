@@ -9,6 +9,7 @@ import ru.emitrohin.paymentserver.config.MessageConfig;
 import ru.emitrohin.paymentserver.model.Subscription;
 import ru.emitrohin.paymentserver.model.SubscriptionStatus;
 import ru.emitrohin.paymentserver.repository.SubscriptionRepository;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -65,41 +66,57 @@ public class SubscriptionService {
     }
 
     public void extendSubscription(long telegramId) {
-        subscriptionRepository.findFirstByTelegramIdAndSubscriptionEndDateAfter(telegramId, LocalDateTime.now())
-                .ifPresent(
-                        subscription -> {
-                            // Продлеваем подписку на еще один месяц с текущей даты окончания
-                            subscription.setSubscriptionEndDate(subscription.getSubscriptionEndDate().plusMonths(1));
-                            save(subscription);
-                        }
-                );
-    }
+        subscriptionRepository.findFirstByTelegramIdAndSubscriptionStatus(telegramId, SubscriptionStatus.PAID)
+                .ifPresent(subscription -> {
+                    // Обновляем статус текущей подписки на EXTENDED
+                    subscription.setSubscriptionStatus(SubscriptionStatus.EXTENDED);
+                    save(subscription);
 
-    @Scheduled(cron = "0 0 0 * * *") // Каждый день в полночь
-    public void checkSubscriptionsAndNotifyExpired() {
-        var now = LocalDateTime.now();
-
-        subscriptionRepository.findAllBySubscriptionEndDateBeforeAndSubscriptionStatus(now, SubscriptionStatus.PAID)
-                .forEach(subscription -> expireSubscription(subscription.getTelegramId()));
-
-        var threeDaysBeforeEnd = now.plusDays(3);
-
-        subscriptionRepository.findAllBySubscriptionEndDateAfterAndSubscriptionStatus(threeDaysBeforeEnd, SubscriptionStatus.PAID)
-                .forEach(subscription -> {
-                    if (subscription.getSubscriptionEndDate().isBefore(threeDaysBeforeEnd)) {
-                        telegramBotClient.sendMessage(subscription.getTelegramId(), messageConfig.getSubscriptionReminder());
-                    }
+                    // Создаем новую запись подписки со статусом PAID и новым сроком действия
+                    var newSubscription = new Subscription();
+                    newSubscription.setTelegramId(telegramId);
+                    newSubscription.setSubscriptionStartDate(subscription.getSubscriptionEndDate());
+                    newSubscription.setSubscriptionEndDate(subscription.getSubscriptionEndDate().plusMonths(1));
+                    newSubscription.setSubscriptionStatus(SubscriptionStatus.PAID);
+                    save(newSubscription);
                 });
     }
 
-    public void expireSubscription(long telegramId) {
+    @Scheduled(cron = "0 0 0 * * *") // Каждый день в полночь
+    public void expireSubscriptionsDaily() {
+        var now = LocalDateTime.now();
+
+        subscriptionRepository.findFirstBySubscriptionEndDateBeforeAndSubscriptionStatus(now, SubscriptionStatus.PAID)
+                .forEach(subscription -> expireSubscription(subscription.getTelegramId()));
+    }
+
+    @Scheduled(cron = "0 5 0 * * *") // Каждый день в 00:05
+    public void sendExpiryRemindersDaily() {
+        var threeDaysBeforeEnd = LocalDateTime.now().plusDays(3);
+        var oneDayBeforeEnd = LocalDateTime.now().plusDays(1);
+
+        subscriptionRepository.findFirstBySubscriptionEndDateAfterAndSubscriptionStatus(threeDaysBeforeEnd, SubscriptionStatus.PAID)
+                .forEach(subscription -> sendReminderIfNeeded(subscription, threeDaysBeforeEnd, oneDayBeforeEnd));
+    }
+
+    private void sendReminderIfNeeded(Subscription subscription, LocalDateTime threeDaysBeforeEnd, LocalDateTime oneDayBeforeEnd) {
+        var telegramId = subscription.getTelegramId();
+        var endDate = subscription.getSubscriptionEndDate();
+
+        if (endDate.isBefore(threeDaysBeforeEnd)) {
+            telegramBotClient.sendMessage(telegramId, messageConfig.getSubscriptionRenewalFirstReminder());
+        } else if (endDate.isBefore(oneDayBeforeEnd)) {
+            telegramBotClient.sendMessage(telegramId, messageConfig.getSubscriptionRenewalSecondReminder());
+        }
+    }
+
+    private void expireSubscription(long telegramId) {
         subscriptionRepository.findFirstByTelegramId(telegramId)
                 .ifPresent(subscription -> {
                     subscription.setSubscriptionStatus(SubscriptionStatus.EXPIRED);
                     save(subscription);
                     telegramBotClient.removeFromTelegramGroup(telegramId);
                     telegramBotClient.sendExpirationNotification(telegramId);
-                    telegramBotClient.verifyUserLeftGroup(telegramId);
                 });
     }
 

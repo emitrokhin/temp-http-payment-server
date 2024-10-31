@@ -19,8 +19,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
             LocalDateTime endOfMonth);
     Optional<Subscription> findByTelegramIdAndSubscriptionStatus(Long telegramId, SubscriptionStatus subscriptionStatus);
     Optional<Subscription> findFirstByTelegramIdAndSubscriptionEndDateAfter(Long telegramId, LocalDateTime endDate);
-    List<Subscription> findAllBySubscriptionEndDateBeforeAndSubscriptionStatus(LocalDateTime endDate, SubscriptionStatus subscriptionStatus);
+    List<Subscription> findFirstBySubscriptionEndDateBeforeAndSubscriptionStatus(LocalDateTime endDate, SubscriptionStatus subscriptionStatus);
     Optional<Subscription> findFirstByTelegramIdAndSubscriptionEndDateBefore(Long telegramId, LocalDateTime endDate);
     Optional<Subscription> findFirstByTelegramId(Long telegramId);
-    List<Subscription> findAllBySubscriptionEndDateAfterAndSubscriptionStatus(LocalDateTime endDate, SubscriptionStatus subscriptionStatus);
+    List<Subscription> findFirstBySubscriptionEndDateAfterAndSubscriptionStatus(LocalDateTime endDate, SubscriptionStatus subscriptionStatus);
+    Optional<Subscription> findFirstByTelegramIdAndSubscriptionStatus(Long telegramId, SubscriptionStatus subscriptionStatus);
 }
