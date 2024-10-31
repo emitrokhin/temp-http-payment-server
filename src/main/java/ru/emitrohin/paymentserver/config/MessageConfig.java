@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @RequiredArgsConstructor
 public class MessageConfig {
-    private String expirationNotification;
-    private String subscriptionReminder;
+    private String subscriptionIsExpiredNotification;
+    private String subscriptionRenewalFirstReminder;
+    private String subscriptionRenewalSecondReminder;
 }
