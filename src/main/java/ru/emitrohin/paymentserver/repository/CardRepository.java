@@ -13,4 +13,5 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     Optional<Card> findByCardId(String cardId);
     void deleteCardByCardId(String cardId);
     Optional<Card> findCardByToken(String token);
+    Optional<Card> findByTelegramIdAndIsPrimaryTrue(long telegramId);
 }
