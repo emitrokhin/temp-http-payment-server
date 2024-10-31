@@ -3,6 +3,7 @@ package ru.emitrohin.paymentserver.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.springframework.core.env.StandardEnvironment;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import ru.emitrohin.paymentserver.config.CheckTestEnvironment;
 import ru.emitrohin.paymentserver.config.MessageConfig;
 import ru.emitrohin.paymentserver.config.TelegramProperties;
 
@@ -23,20 +25,30 @@ import java.util.Map;
 @EnableConfigurationProperties(TelegramProperties.class)
 public class TelegramBotClient {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final TelegramProperties properties;
 
     private final RestTemplate restTemplate;
 
-    private final Environment environment = new StandardEnvironment();
+    private final Environment environment;
 
     private final ObjectMapper objectMapper;
 
     private final MessageConfig messageConfig;
 
-    private final Boolean testEnv = !environment.matchesProfiles("prod");
+    private final CheckTestEnvironment checkTestEnvironment;
 
-    private final Logger logger = LoggerFactory.getLogger(TelegramBotClient.class);
+    private Boolean testEnv;
 
+    @PostConstruct
+    private void init() {
+        this.testEnv = checkTestEnvironment.isTestEnvironment();
+    }
+
+    /**
+     * Метод для отправки сообщения с кнопками
+     */
     //TODO проверять что пришло, повторять попытки и т  д
     public void sendMessageWithButtons(String text, long telegramId) {
         var url = String.format("https://api.telegram.org/bot%s/%s/sendPhoto", properties.botToken(), testEnv ? "test" : "");
@@ -45,10 +57,10 @@ public class TelegramBotClient {
         // Создаем кнопки
         var keyboard = new HashMap<>();
         keyboard.put("inline_keyboard",
-                new Object[][]{
-                        {createButtonWithUrl("Мой профиль", "https://mitrokhina.ru.tuna.am/profile", true)},
-                        {createButtonWithUrl("Перейти в сообщество", properties.societyLink(), false)},
-                        {createButtonWithUrl("Написать в поддержку", "https://t.me/fenomen_mitrohina_bot", false)}
+                new Object[][] {
+                        { createButtonWithUrl("Мой профиль", "https://mitrokhina.ru.tuna.am/profile", true) },
+                        { createButtonWithUrl("Перейти в сообщество", properties.societyLink(), false) },
+                        { createButtonWithUrl("Написать в поддержку", "https://t.me/fenomen_mitrohina_bot", false) }
                 });
 
         // Создаем тело запроса
@@ -118,7 +130,7 @@ public class TelegramBotClient {
 
 
     public void sendExpirationNotification(long telegramId) {
-        sendMessage(telegramId, messageConfig.getExpirationNotification());
+        sendMessage(telegramId, messageConfig.getSubscriptionIsExpiredNotification());
     }
 
     public void sendMessage(long telegramId, String message) {
@@ -148,38 +160,6 @@ public class TelegramBotClient {
             logger.error("Failed to parse response for user ID {}: {}", telegramId, e.getMessage());
         } catch (Exception e) {
             logger.error("An error occurred while trying to send a message to user with ID {}: {}", telegramId, e.getMessage());
-        }
-    }
-
-
-    public void verifyUserLeftGroup(long telegramId) {
-        var url = String.format("https://api.telegram.org/bot%s/%s/getChatMember", properties.botToken(), testEnv ? "test" : "");
-
-        var requestBody = new HashMap<String, Object>();
-        requestBody.put("chat_id", properties.societyId());
-        requestBody.put("user_id", telegramId);
-
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        var requestEntity = new HttpEntity<>(requestBody, headers);
-
-        try {
-            var response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-
-            var objectMapper = new ObjectMapper();
-            var jsonResponse = objectMapper.readTree(response.getBody());
-            var status = jsonResponse.path("result").path("status").asText();
-
-            if ("left".equals(status) || "kicked".equals(status)) {
-                logger.info("{} was kicked from the group", telegramId);
-            } else {
-                logger.warn("User with ID {} has status: {}", telegramId, status);
-            }
-        } catch (JsonProcessingException e) {
-            logger.error("Failed to parse response for telegram ID {}: {}", telegramId, e.getMessage());
-        } catch (Exception e) {
-            logger.error("An error occurred while verifying user status for ID {}: {}", telegramId, e.getMessage());
         }
     }
 
