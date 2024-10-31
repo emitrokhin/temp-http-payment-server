@@ -12,8 +12,10 @@ import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.dto.mapper.CardMapper;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
 import ru.emitrohin.paymentserver.model.Card;
+import ru.emitrohin.paymentserver.model.PaymentStatus;
 import ru.emitrohin.paymentserver.model.SubscriptionStatus;
 import ru.emitrohin.paymentserver.service.CardService;
+import ru.emitrohin.paymentserver.service.PaymentService;
 import ru.emitrohin.paymentserver.service.SubscriptionService;
 import ru.emitrohin.paymentserver.service.TransactionService;
 
@@ -43,12 +45,17 @@ public class CloudpaymentsWebhookController {
 
     private final CardMapper cardMapper;
 
+    private final PaymentService paymentService;
+
     //TODO check webhook повторный платеж и проверка accountId
     @PostMapping("/cloudpayments/success")
     public ResponseEntity<Map<String, Integer>> successWebhook(@Valid CloudpaymentsRequest request) {
         try {
             var telegramId = Long.parseLong(request.getAccountId());
             var transaction = transactionMapper.createFromRequest(request);
+
+            var payment = paymentService.getLastPendingPayment(telegramId);
+            paymentService.updatePaymentStatus(payment.get().getId(), PaymentStatus.SUCCESS);
 
             // Сохранение транзакции
             transactionService.save(transaction);
@@ -80,15 +87,24 @@ public class CloudpaymentsWebhookController {
 
     @PostMapping( "/cloudpayments/fail")
     public ResponseEntity<Map<String, Integer>> failWebhook(@Valid CloudpaymentsRequest request) {
-        var transaction = transactionMapper.createFromRequest(request);
-        transactionService.save(transaction);
+        try {
+            var telegramId = Long.parseLong(request.getAccountId());
+            var transaction = transactionMapper.createFromRequest(request);
+            transactionService.save(transaction);
 
-        // Проверка, существует ли карта с указанным cardId
-        var card = cardService.getCardByCardId(request.getCardId());
+            var payment = paymentService.getLastPendingPayment(telegramId);
+            paymentService.updatePaymentStatus(payment.get().getId(), PaymentStatus.FAILED);
 
-        if (card != null) {
-            // Деактивация карты в случае неудачной транзакции
-            cardService.deactivateCard(card.getCardId());
+            // Проверка, существует ли карта с указанным cardId
+            var card = cardService.getCardByCardId(request.getCardId());
+
+            if (card != null) {
+                // Деактивация карты в случае неудачной транзакции
+                cardService.deactivateCard(card.getCardId());
+            }
+
+        } catch (NumberFormatException e) {
+            logger.error("AccountId {} should be numeric. Can't save to DB", request.getAccountId());
         }
 
         //TODO выслать в бот уведомление с кнопкой

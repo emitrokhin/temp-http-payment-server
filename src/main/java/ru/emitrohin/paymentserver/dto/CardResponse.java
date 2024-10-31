@@ -6,5 +6,6 @@ public record CardResponse(
         Boolean isActive,
         Boolean isPrimary,
         String cardType,
-        String cardId) {
+        String cardId,
+        String token) {
 }
