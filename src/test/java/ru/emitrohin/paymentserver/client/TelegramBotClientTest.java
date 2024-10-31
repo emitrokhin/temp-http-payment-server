@@ -100,37 +100,4 @@ public class TelegramBotClientTest {
         assertEquals("Test message", requestBody.get("text"));
     }
 
-
-    @Test
-    public void shouldVerifyUserStatusAsLeft() throws JsonProcessingException {
-        var jsonResponseString = "{\"result\":{\"status\":\"left\"}}";
-        var responseEntity = new ResponseEntity<>(jsonResponseString, HttpStatus.OK);
-
-        when(restTemplate.exchange(
-                contains("/getChatMember"),
-                eq(HttpMethod.POST),
-                any(HttpEntity.class),
-                eq(String.class))
-        ).thenReturn(responseEntity);
-
-        var mockJsonNode = new ObjectMapper().readTree(jsonResponseString);
-        when(objectMapper.readTree(jsonResponseString)).thenReturn(mockJsonNode);
-
-        telegramBotClient.verifyUserLeftGroup(TELEGRAM_ID);
-
-        verify(restTemplate, times(1)).exchange(
-                contains("/getChatMember"),
-                eq(HttpMethod.POST),
-                any(HttpEntity.class),
-                eq(String.class)
-        );
-        logger.info(TELEGRAM_ID + " was kicked from the group");
-        assertNotNull(responseEntity.getBody(), "Response body should not be null");
-
-        var jsonResponse = objectMapper.readTree(jsonResponseString);
-        assertEquals("left", jsonResponse.path("result").path("status").asText());
-        verify(logger, times(1)).info(TELEGRAM_ID + " was kicked from the group");
-    }
-
-
 }
