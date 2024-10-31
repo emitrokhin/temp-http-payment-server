@@ -19,5 +19,7 @@ public record ProfilePaymentDTO(
 
     @NotNull(message = "Email не должен быть пустым")
     @Email(message = "Неверный формат email")
-    String email
+    String email,
+
+    long telegramId
 ){}

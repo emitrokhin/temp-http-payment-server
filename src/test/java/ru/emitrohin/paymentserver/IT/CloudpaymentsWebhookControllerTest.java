@@ -18,9 +18,8 @@ import ru.emitrohin.paymentserver.dto.cloudpayments.CloudpaymentsRequest;
 import ru.emitrohin.paymentserver.dto.mapper.CardMapper;
 import ru.emitrohin.paymentserver.dto.mapper.ProfileMapper;
 import ru.emitrohin.paymentserver.dto.mapper.TransactionMapper;
-import ru.emitrohin.paymentserver.model.Card;
-import ru.emitrohin.paymentserver.model.SubscriptionStatus;
-import ru.emitrohin.paymentserver.model.Transaction;
+import ru.emitrohin.paymentserver.dto.profile.ProfilePaymentDTO;
+import ru.emitrohin.paymentserver.model.*;
 import ru.emitrohin.paymentserver.repository.CardRepository;
 import ru.emitrohin.paymentserver.repository.SubscriptionRepository;
 import ru.emitrohin.paymentserver.repository.TransactionRepository;
@@ -29,6 +28,8 @@ import ru.emitrohin.paymentserver.service.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -96,6 +97,9 @@ public class CloudpaymentsWebhookControllerTest {
     @MockBean
     private CardMapper cardMapper;
 
+    @MockBean
+    private PaymentService paymentService;
+
 
     private static final Long TELEGRAM_ID = 1234567890L;
     private static final Transaction TEST_TRANSACTION1 = createTestTransaction(BigDecimal.valueOf(100),
@@ -106,6 +110,16 @@ public class CloudpaymentsWebhookControllerTest {
             true, "VISA", "12345");
     private static final Card TEST_CARD2 = createTestCard(2222, "03/33", true,
             false, "MASTERCARD", "54321");
+    private static final UUID PAYMENT_ID = UUID.randomUUID();
+    private static final Payment TEST_PAYMENT = createTestPayment(PAYMENT_ID, TELEGRAM_ID, PaymentStatus.PENDING);
+
+    private static Payment createTestPayment(UUID id, long telegramId, PaymentStatus paymentStatus) {
+        var payment = new Payment();
+        payment.setId(id);
+        payment.setPaymentStatus(paymentStatus);
+        payment.setTelegramId(telegramId);
+        return payment;
+    }
 
     private static Transaction createTestTransaction(BigDecimal amount, LocalDateTime dateTime, String currency) {
         var transaction = new Transaction();
@@ -136,12 +150,12 @@ public class CloudpaymentsWebhookControllerTest {
                 TEST_TRANSACTION1.getCurrency(), // PaymentCurrency из Transaction
                 "Payment",                     // OperationType
                 "INV123",                      // InvoiceId
-                TEST_CARD1.getCardId(),       // AccountId (ID пользователя) из Card
+                String.valueOf(TELEGRAM_ID),       // AccountId (ID пользователя) из Card
                 "SUBS123",                     // SubscriptionId (ID подписки)
                 "test@test.com",               // Email
                 LocalDateTime.now(),           // DateTime (текущая дата/время)
-                null,                          // Reason (null, так как платеж успешен)
-                null,                          // ReasonCode (null, т.к. платеж успешен)
+                "reason",                          // Reason (null, так как платеж успешен)
+                1,                          // ReasonCode (null, т.к. платеж успешен)
                 TEST_CARD1.getCardId(),       // CardId (уникальный идентификатор карты) из Card
                 123456,                        // CardFirstSix (первые 6 цифр карты)
                 TEST_CARD1.getCardLastFour(), // CardLastFour (последние 4 цифры карты) из Card
@@ -163,6 +177,9 @@ public class CloudpaymentsWebhookControllerTest {
 
         // Настройка мока для сервисов
         when(cardService.getCardByCardId(transactionRequest.getCardId())).thenReturn(null);
+        when(paymentService.getLastPendingPayment(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PAYMENT));
+
+        paymentService.updatePaymentStatus(PAYMENT_ID, PaymentStatus.SUCCESS);
         cardService.saveCard(TEST_CARD1);
         transactionService.save(TEST_TRANSACTION1);
         subscriptionService.createOrUpdateCurrentSubscriptionStatus(TELEGRAM_ID, SubscriptionStatus.PAID);
@@ -185,6 +202,7 @@ public class CloudpaymentsWebhookControllerTest {
         verify(subscriptionService).createOrUpdateCurrentSubscriptionStatus(eq(TELEGRAM_ID), any());
         verify(telegramBotClient).sendMessageWithButtons(anyString(), eq(TELEGRAM_ID));
         verify(botMotherClient).sendPayload(eq(TELEGRAM_ID));
+        verify(paymentService).updatePaymentStatus(TEST_PAYMENT.getId(), PaymentStatus.SUCCESS);
     }
 
     @Test
@@ -194,6 +212,9 @@ public class CloudpaymentsWebhookControllerTest {
 
         // Настройка мока для сервисов
         when(cardService.getCardByCardId(transactionRequest.getCardId())).thenReturn(TEST_CARD1); // Карта найдена
+        when(paymentService.getLastPendingPayment(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PAYMENT));
+
+        paymentService.updatePaymentStatus(PAYMENT_ID, PaymentStatus.SUCCESS);
         transactionService.save(TEST_TRANSACTION1);
         subscriptionService.createOrUpdateCurrentSubscriptionStatus(TELEGRAM_ID, SubscriptionStatus.PAID);
         telegramBotClient.sendMessageWithButtons("Твоя подписка успешно оплачена! 🎉\n\nВот ссылки для твоего удобства \uD83D\uDC47", TELEGRAM_ID);
@@ -217,6 +238,7 @@ public class CloudpaymentsWebhookControllerTest {
         verify(subscriptionService).createOrUpdateCurrentSubscriptionStatus(eq(TELEGRAM_ID), any());
         verify(telegramBotClient).sendMessageWithButtons(anyString(), eq(TELEGRAM_ID));
         verify(botMotherClient).sendPayload(eq(TELEGRAM_ID));
+        verify(paymentService).updatePaymentStatus(TEST_PAYMENT.getId(), PaymentStatus.SUCCESS);
     }
 
     @Test
@@ -226,6 +248,9 @@ public class CloudpaymentsWebhookControllerTest {
 
         // Настройка мока для сервисов
         when(cardService.getCardByCardId(transactionRequest.getCardId())).thenReturn(TEST_CARD1);
+        when(paymentService.getLastPendingPayment(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PAYMENT));
+
+        paymentService.updatePaymentStatus(PAYMENT_ID, PaymentStatus.FAILED);
         cardService.deactivateCard(transactionRequest.getCardId());
         transactionService.save(TEST_TRANSACTION1);
 
@@ -233,7 +258,6 @@ public class CloudpaymentsWebhookControllerTest {
         var requestBuilder = post("/cloudpayments/fail")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(transactionRequest));
-
         // Выполнение запроса
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
@@ -243,6 +267,7 @@ public class CloudpaymentsWebhookControllerTest {
         verify(transactionService).save(TEST_TRANSACTION1);
         // Проверка, что карта была деактивирована
         verify(cardService).deactivateCard(TEST_CARD1.getCardId());
+        verify(paymentService).updatePaymentStatus(TEST_PAYMENT.getId(), PaymentStatus.FAILED);
     }
 
     @Test
@@ -252,6 +277,9 @@ public class CloudpaymentsWebhookControllerTest {
 
         // Настройка мока для сервисов
         when(cardService.getCardByCardId(transactionRequest.getCardId())).thenReturn(null); // Карта не найдена
+        when(paymentService.getLastPendingPayment(TELEGRAM_ID)).thenReturn(Optional.of(TEST_PAYMENT));
+
+        paymentService.updatePaymentStatus(PAYMENT_ID, PaymentStatus.FAILED);
         transactionService.save(TEST_TRANSACTION1);
 
         // Запрос
@@ -259,6 +287,7 @@ public class CloudpaymentsWebhookControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(transactionRequest));
 
+        System.out.println(objectMapper.writeValueAsString(transactionRequest));
         // Выполнение запроса
         mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
@@ -268,6 +297,7 @@ public class CloudpaymentsWebhookControllerTest {
         verify(transactionService).save(TEST_TRANSACTION1);
         // Проверка, что деактивация карты не выполнялась
         verify(cardService, never()).deactivateCard(anyString());
+        verify(paymentService).updatePaymentStatus(TEST_PAYMENT.getId(), PaymentStatus.FAILED);
     }
 
 }

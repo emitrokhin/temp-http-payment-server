@@ -57,4 +57,8 @@ public class CardService {
         });
     }
 
+    public Card getPrimaryCard(long telegramId) {
+        return cardRepository.findByTelegramIdAndIsPrimaryTrue(telegramId).orElseThrow();
+    }
+
 }

@@ -29,7 +29,7 @@ import java.util.UUID;
 @EnableConfigurationProperties(CloudpaymentsProperties.class)
 public class PaymentController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final TelegramUserDataService telegramUserDataService;
 
@@ -53,13 +53,11 @@ public class PaymentController {
         // есть ли такой пользователь?
         var userData = telegramUserDataService.findByTelegramId(telegramId);
         if (userData.isEmpty()) {
-            logger.error("User with id {} not found", telegramId);
             bindingResult.rejectValue("telegramId", "error.personalDataForm", "Пользователь с таким Telegram ID не найден");
             return "redirect:/index";
         } else {
             // есть ли ошибки?
             if (bindingResult.hasErrors()) {
-                logger.error("Binding result has errors {}", bindingResult.getAllErrors());
                 return "redirect:/index";
             }
             // оплачена ли подписка?
