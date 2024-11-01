@@ -42,7 +42,7 @@ public class TelegramBotClient {
     private Boolean testEnv;
 
     @PostConstruct
-    private void init() {
+    public void init() {
         this.testEnv = checkTestEnvironment.isTestEnvironment();
     }
 
