@@ -103,10 +103,10 @@ public class SubscriptionService {
         var telegramId = subscription.getTelegramId();
         var endDate = subscription.getSubscriptionEndDate();
 
-        if (endDate.isBefore(threeDaysBeforeEnd)) {
-            telegramBotClient.sendMessage(telegramId, messageConfig.getSubscriptionRenewalFirstReminder());
-        } else if (endDate.isBefore(oneDayBeforeEnd)) {
+        if (endDate.isBefore(oneDayBeforeEnd)) {
             telegramBotClient.sendMessage(telegramId, messageConfig.getSubscriptionRenewalSecondReminder());
+        } else if (endDate.isBefore(threeDaysBeforeEnd)) {
+            telegramBotClient.sendMessage(telegramId, messageConfig.getSubscriptionRenewalFirstReminder());
         }
     }
 
