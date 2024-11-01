@@ -2,6 +2,8 @@ package ru.emitrohin.paymentserver.IT;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,6 +37,15 @@ public class SubscriptionServiceTest {
 
     @Mock
     private MessageConfig messageConfig;
+
+    @Captor
+    private ArgumentCaptor<Subscription> subscriptionCaptor;
+
+    @Captor
+    private ArgumentCaptor<String> messageCaptor;
+
+    @Captor
+    private ArgumentCaptor<Long> telegramIdCaptor;
 
     private static final Long TELEGRAM_ID = 1234567890L;
 
@@ -82,7 +93,11 @@ public class SubscriptionServiceTest {
 
         assertEquals(initialEndDate.plusMonths(1), subscription.getSubscriptionEndDate());
 
-        verify(subscriptionRepository).save(subscription);
+        verify(subscriptionRepository).save(subscriptionCaptor.capture());
+
+        var savedSubscription = subscriptionCaptor.getValue();
+
+        assertEquals(initialEndDate.plusMonths(1), savedSubscription.getSubscriptionEndDate());
     }
 
     @Test
@@ -93,13 +108,12 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findFirstByTelegramId(EXPIRED_SUBSCRIPTION.getTelegramId()))
                 .thenReturn(Optional.of(EXPIRED_SUBSCRIPTION));
 
-        subscriptionService.checkSubscriptionsAndNotifyExpired();
+        subscriptionService.expireSubscriptionsDaily();
 
         verify(subscriptionRepository).findFirstBySubscriptionEndDateBeforeAndSubscriptionStatus(any(LocalDateTime.class), eq(SubscriptionStatus.PAID));
-
-        verify(telegramBotClient).removeFromTelegramGroup(EXPIRED_SUBSCRIPTION.getTelegramId());
-        verify(telegramBotClient).sendExpirationNotification(EXPIRED_SUBSCRIPTION.getTelegramId());
-
+        verify(telegramBotClient).removeFromTelegramGroup(telegramIdCaptor.capture());
+        verify(telegramBotClient).sendExpirationNotification(telegramIdCaptor.capture());
+        assertEquals(EXPIRED_SUBSCRIPTION.getTelegramId(), telegramIdCaptor.getValue());
         verify(subscriptionRepository).save(EXPIRED_SUBSCRIPTION);
     }
 
@@ -113,26 +127,31 @@ public class SubscriptionServiceTest {
 
         when(messageConfig.getSubscriptionRenewalFirstReminder()).thenReturn("До конца вашей подписки осталось 3 дня");
 
-        subscriptionService.checkSubscriptionsAndNotifyExpired();
+        subscriptionService.sendExpiryRemindersDaily();
 
         verify(subscriptionRepository).findFirstBySubscriptionEndDateAfterAndSubscriptionStatus(any(LocalDateTime.class), eq(SubscriptionStatus.PAID));
-        verify(telegramBotClient).sendMessage(eq(threeDaysBeforeExpire.getTelegramId()), contains("До конца вашей подписки осталось 3 дня"));
+        verify(telegramBotClient).sendMessage(telegramIdCaptor.capture(), messageCaptor.capture());
+        assertEquals(TELEGRAM_ID, telegramIdCaptor.getValue());
+        assertEquals("До конца вашей подписки осталось 3 дня", messageCaptor.getValue());
     }
 
     @Test
     public void shouldSendReminderWhenSubscriptionIsAboutOneDayToExpire() {
         var oneDayBeforeExpire = createTestSubscription(
-                TELEGRAM_ID, SubscriptionStatus.PAID, LocalDateTime.now().plusDays(1), LocalDateTime.now().minusDays(1));
+                        TELEGRAM_ID, SubscriptionStatus.PAID, LocalDateTime.now().plusDays(1), LocalDateTime.now().minusDays(1));
 
         when(subscriptionRepository.findFirstBySubscriptionEndDateAfterAndSubscriptionStatus(any(LocalDateTime.class), eq(SubscriptionStatus.PAID)))
                 .thenReturn(List.of(oneDayBeforeExpire));
 
         when(messageConfig.getSubscriptionRenewalSecondReminder()).thenReturn("До конца вашей подписки остался 1 день");
 
-        subscriptionService.checkSubscriptionsAndNotifyExpired();
+        subscriptionService.sendExpiryRemindersDaily();
 
         verify(subscriptionRepository).findFirstBySubscriptionEndDateAfterAndSubscriptionStatus(any(LocalDateTime.class), eq(SubscriptionStatus.PAID));
-        verify(telegramBotClient).sendMessage(eq(oneDayBeforeExpire.getTelegramId()), contains("До конца вашей подписки остался 1 день"));
+        verify(telegramBotClient).sendMessage(telegramIdCaptor.capture(), messageCaptor.capture());
+        assertEquals(TELEGRAM_ID, telegramIdCaptor.getValue());
+        assertEquals("До конца вашей подписки остался 1 день", messageCaptor.getValue());
+
     }
 
     @Test
@@ -143,10 +162,12 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findFirstByTelegramId(EXPIRED_SUBSCRIPTION.getTelegramId()))
                 .thenReturn(Optional.of(EXPIRED_SUBSCRIPTION));
 
-        subscriptionService.checkSubscriptionsAndNotifyExpired();
+        subscriptionService.expireSubscriptionsDaily();
 
-        verify(telegramBotClient).removeFromTelegramGroup(EXPIRED_SUBSCRIPTION.getTelegramId());
-        verify(telegramBotClient).sendExpirationNotification(EXPIRED_SUBSCRIPTION.getTelegramId());
+        verify(telegramBotClient).removeFromTelegramGroup(telegramIdCaptor.capture());
+        verify(telegramBotClient).sendExpirationNotification(telegramIdCaptor.capture());
+
+        assertEquals(EXPIRED_SUBSCRIPTION.getTelegramId(), telegramIdCaptor.getValue());
 
         verify(subscriptionRepository).save(EXPIRED_SUBSCRIPTION);
     }
