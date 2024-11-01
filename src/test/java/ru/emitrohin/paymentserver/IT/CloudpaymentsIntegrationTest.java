@@ -72,7 +72,7 @@ class CloudpaymentsIntegrationTest {
         assertThat(transaction.get().getTelegramId()).isEqualTo(TELEGRAM_ID);
 
         // Проверяем, что подписка была сохранена
-        var subscription = subscriptionRepository.findFirstByTelegramIdAndSubscriptionDateBetween(TELEGRAM_ID, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
+        var subscription = subscriptionRepository.findFirstByTelegramIdAndSubscriptionStartDateBetween(TELEGRAM_ID, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
         assertThat(subscription).isPresent();
         assertThat(subscription.get().getTelegramId()).isEqualTo(TELEGRAM_ID);
         assertThat(subscription.get().getSubscriptionStatus()).isEqualTo(SubscriptionStatus.PAID);

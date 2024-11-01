@@ -1,0 +1,4 @@
+messages:
+  subscriptionIsExpiredNotification: "Ваша подписка завершена, и вы были удалены из группы."
+  subscriptionRenewalFirstReminder: "До конца вашей подписки осталось 3 дня. Пожалуйста, продлите подписку."
+  subscriptionRenewalSecondReminder: "До конца вашей подписки остался 1 день. Пожалуйста, продлите подписку."
